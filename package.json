@@ -1,0 +1,22 @@
+{
+  "name": "nutrition-backend",
+  "version": "1.0.0",
+  "description": "mock backend API for an AI assisted meal and nutrition tracking web application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "nutrition",
+    "meals",
+    "mock-api"
+  ],
+  "author": "Denis Kulman and Yael Dorahly",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
