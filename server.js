@@ -11,11 +11,11 @@ const errorHandler = require("./middleware/errorHandler");
 const app = express();
 const port = 3000;
 
-// parse json bodies
-app.use(express.json());
-
 // log every request
 app.use(logger);
+
+// parse json bodies
+app.use(express.json());
 
 // basic home route
 app.get("/", (req, res) => {
