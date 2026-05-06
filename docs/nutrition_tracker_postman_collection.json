@@ -1,0 +1,430 @@
+{
+  "info": {
+    "name": "Nutrition Tracker Backend API",
+    "description": "Postman collection for Assignment 2 mock backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Home",
+      "item": [
+        {
+          "name": "GET Home",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": [""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "GET User By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "POST Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "admin"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"userRole\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "manager"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\",\n  \"userRole\": \"manager\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/users/2",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users", "2"]
+            }
+          }
+        },
+        {
+          "name": "DELETE User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-role",
+                "value": "admin"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/users/3",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users", "3"]
+            }
+          }
+        },
+        {
+          "name": "ERROR Create User Missing Field",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "admin"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"OnlyFirstName\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["users"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Meals",
+      "item": [
+        {
+          "name": "GET All Meals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/meals",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals"]
+            }
+          }
+        },
+        {
+          "name": "GET Meals By User And Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/meals?userId=1&date=2026-05-06",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-05-06"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Meal By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/meals/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "1"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Meal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "user"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"mealName\": \"manual tuna sandwich\",\n  \"mealDate\": \"2026-05-06\",\n  \"imagePath\": null,\n  \"items\": [\n    {\n      \"foodName\": \"tuna\",\n      \"confirmedPortionGrams\": 120,\n      \"calories\": 140,\n      \"protein\": 30,\n      \"carbs\": 0,\n      \"fat\": 1\n    },\n    {\n      \"foodName\": \"bread\",\n      \"confirmedPortionGrams\": 80,\n      \"calories\": 210,\n      \"protein\": 7,\n      \"carbs\": 40,\n      \"fat\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/meals",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Meal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "user"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"mealName\": \"updated chicken rice lunch\",\n  \"mealDate\": \"2026-05-06\",\n  \"imagePath\": \"uploads/updated-lunch.jpg\",\n  \"items\": [\n    {\n      \"foodName\": \"chicken breast\",\n      \"confirmedPortionGrams\": 200,\n      \"calories\": 330,\n      \"protein\": 62,\n      \"carbs\": 0,\n      \"fat\": 7.2\n    },\n    {\n      \"foodName\": \"white rice\",\n      \"confirmedPortionGrams\": 180,\n      \"calories\": 234,\n      \"protein\": 4.9,\n      \"carbs\": 50.4,\n      \"fat\": 0.5\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/meals/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "1"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Meal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-user-role",
+                "value": "admin"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/meals/3",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "3"]
+            }
+          }
+        },
+        {
+          "name": "ERROR Meal Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/meals/999",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "999"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET Today Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/dashboard/today?userId=1&date=2026-05-06",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["dashboard", "today"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-05-06"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "ERROR Dashboard Missing User ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/dashboard/today",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["dashboard", "today"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Meal AI Analysis",
+      "item": [
+        {
+          "name": "POST Analyze Meal Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "user"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageName\": \"lunch.jpg\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/meals/analyze-image",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "analyze-image"]
+            }
+          }
+        },
+        {
+          "name": "ERROR Analyze Meal Missing Image Name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-user-role",
+                "value": "user"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/meals/analyze-image",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "analyze-image"]
+            }
+          }
+        },
+        {
+          "name": "ERROR Forbidden Missing Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageName\": \"lunch.jpg\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/meals/analyze-image",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["meals", "analyze-image"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

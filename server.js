@@ -3,7 +3,6 @@ const express = require("express");
 const usersRoutes = require("./routes/usersRoutes");
 const mealsRoutes = require("./routes/mealsRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
-const aiRoutes = require("./routes/aiRoutes");
 
 const logger = require("./middleware/logger");
 const notFound = require("./middleware/notFound");
@@ -25,7 +24,7 @@ app.get("/", (req, res) => {
     data: {
       message: "nutrition tracker backend api is running",
       baseUrl: "http://localhost:3000",
-      endpoints: ["/users", "/meals", "/dashboard/today", "/ai/analyze-meal"]
+      endpoints: ["/users", "/meals", "/meals/analyze-image", "/dashboard/today"]
     },
     error: null
   });
@@ -35,7 +34,6 @@ app.get("/", (req, res) => {
 app.use("/users", usersRoutes);
 app.use("/meals", mealsRoutes);
 app.use("/dashboard", dashboardRoutes);
-app.use("/ai", aiRoutes);
 
 // route not found handler
 app.use(notFound);
