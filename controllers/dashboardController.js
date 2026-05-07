@@ -32,9 +32,16 @@ function getTodayDashboard(req, res) {
     fat: 70
   };
 
-  const meals = getMeals().filter((meal) => {
-    return meal.userId === numericUserId && meal.mealDate === date;
-  });
+  const allMeals = getMeals();
+  const meals = [];
+
+  for (let i = 0; i < allMeals.length; i++) {
+    const currentMeal = allMeals[i];
+
+    if (currentMeal.userId === numericUserId && currentMeal.mealDate === date) {
+      meals.push(currentMeal);
+    }
+  }
 
   let consumedCalories = 0;
   let consumedProtein = 0;

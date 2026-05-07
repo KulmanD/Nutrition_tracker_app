@@ -105,11 +105,31 @@ function getAllMeals(req, res) {
     }
 
     const userId = Number(req.query.userId);
-    meals = meals.filter((meal) => meal.userId === userId);
+    const mealsForUser = [];
+
+    for (let i = 0; i < meals.length; i++) {
+      const currentMeal = meals[i];
+
+      if (currentMeal.userId === userId) {
+        mealsForUser.push(currentMeal);
+      }
+    }
+
+    meals = mealsForUser;
   }
 
   if (req.query.date) {
-    meals = meals.filter((meal) => meal.mealDate === req.query.date);
+    const mealsForDate = [];
+
+    for (let i = 0; i < meals.length; i++) {
+      const currentMeal = meals[i];
+
+      if (currentMeal.mealDate === req.query.date) {
+        mealsForDate.push(currentMeal);
+      }
+    }
+
+    meals = mealsForDate;
   }
 
   return successResponse(res, 200, meals);
@@ -126,7 +146,17 @@ function getMealById(req, res) {
   }
 
   const mealId = Number(id);
-  const meal = getMeals().find((currentMeal) => currentMeal.mealId === mealId);
+  const meals = getMeals();
+  let meal;
+
+  for (let i = 0; i < meals.length; i++) {
+    const currentMeal = meals[i];
+
+    if (currentMeal.mealId === mealId) {
+      meal = currentMeal;
+      break;
+    }
+  }
 
   if (!meal) {
     return errorResponse(res, 404, "MEAL_NOT_FOUND", "Meal was not found.", {
@@ -148,6 +178,21 @@ function createMeal(req, res) {
 
   const now = new Date().toISOString();
   const totals = calculateTotals(req.body.items);
+  const mealItems = [];
+
+  for (let i = 0; i < req.body.items.length; i++) {
+    const item = req.body.items[i];
+
+    mealItems.push({
+      itemId: i + 1,
+      foodName: item.foodName,
+      confirmedPortionGrams: Number(item.confirmedPortionGrams),
+      calories: Number(item.calories) || 0,
+      protein: Number(item.protein) || 0,
+      carbs: Number(item.carbs) || 0,
+      fat: Number(item.fat) || 0
+    });
+  }
 
   const newMeal = {
     mealId: getNextMealId(),
@@ -155,17 +200,7 @@ function createMeal(req, res) {
     mealName: req.body.mealName,
     mealDate: req.body.mealDate,
     imagePath: req.body.imagePath || null,
-    items: req.body.items.map((item, index) => {
-      return {
-        itemId: index + 1,
-        foodName: item.foodName,
-        confirmedPortionGrams: Number(item.confirmedPortionGrams),
-        calories: Number(item.calories) || 0,
-        protein: Number(item.protein) || 0,
-        carbs: Number(item.carbs) || 0,
-        fat: Number(item.fat) || 0
-      };
-    }),
+    items: mealItems,
     totalCalories: totals.totalCalories,
     totalProtein: totals.totalProtein,
     totalCarbs: totals.totalCarbs,
@@ -202,7 +237,16 @@ function updateMeal(req, res) {
 
   const mealId = Number(id);
   const meals = getMeals();
-  const mealIndex = meals.findIndex((meal) => meal.mealId === mealId);
+  let mealIndex = -1;
+
+  for (let i = 0; i < meals.length; i++) {
+    const currentMeal = meals[i];
+
+    if (currentMeal.mealId === mealId) {
+      mealIndex = i;
+      break;
+    }
+  }
 
   if (mealIndex === -1) {
     return errorResponse(res, 404, "MEAL_NOT_FOUND", "Meal was not found.", {
@@ -211,30 +255,43 @@ function updateMeal(req, res) {
   }
 
   const totals = calculateTotals(req.body.items);
+  const mealItems = [];
 
-  meals[mealIndex] = {
-    ...meals[mealIndex],
-    userId: Number(req.body.userId),
-    mealName: req.body.mealName,
-    mealDate: req.body.mealDate,
-    imagePath: req.body.imagePath || null,
-    items: req.body.items.map((item, index) => {
-      return {
-        itemId: index + 1,
-        foodName: item.foodName,
-        confirmedPortionGrams: Number(item.confirmedPortionGrams),
-        calories: Number(item.calories) || 0,
-        protein: Number(item.protein) || 0,
-        carbs: Number(item.carbs) || 0,
-        fat: Number(item.fat) || 0
-      };
-    }),
-    totalCalories: totals.totalCalories,
-    totalProtein: totals.totalProtein,
-    totalCarbs: totals.totalCarbs,
-    totalFat: totals.totalFat,
-    updateDate: new Date().toISOString()
-  };
+  for (let i = 0; i < req.body.items.length; i++) {
+    const item = req.body.items[i];
+
+    mealItems.push({
+      itemId: i + 1,
+      foodName: item.foodName,
+      confirmedPortionGrams: Number(item.confirmedPortionGrams),
+      calories: Number(item.calories) || 0,
+      protein: Number(item.protein) || 0,
+      carbs: Number(item.carbs) || 0,
+      fat: Number(item.fat) || 0
+    });
+  }
+
+  const existingMeal = meals[mealIndex];
+  const updatedMeal = {};
+
+  for (const key in existingMeal) {
+    if (Object.prototype.hasOwnProperty.call(existingMeal, key)) {
+      updatedMeal[key] = existingMeal[key];
+    }
+  }
+
+  updatedMeal.userId = Number(req.body.userId);
+  updatedMeal.mealName = req.body.mealName;
+  updatedMeal.mealDate = req.body.mealDate;
+  updatedMeal.imagePath = req.body.imagePath || null;
+  updatedMeal.items = mealItems;
+  updatedMeal.totalCalories = totals.totalCalories;
+  updatedMeal.totalProtein = totals.totalProtein;
+  updatedMeal.totalCarbs = totals.totalCarbs;
+  updatedMeal.totalFat = totals.totalFat;
+  updatedMeal.updateDate = new Date().toISOString();
+
+  meals[mealIndex] = updatedMeal;
 
   return successResponse(res, 200, {
     mealId: mealId
@@ -253,7 +310,16 @@ function deleteMeal(req, res) {
 
   const mealId = Number(id);
   const meals = getMeals();
-  const mealExists = meals.some((meal) => meal.mealId === mealId);
+  let mealExists = false;
+
+  for (let i = 0; i < meals.length; i++) {
+    const currentMeal = meals[i];
+
+    if (currentMeal.mealId === mealId) {
+      mealExists = true;
+      break;
+    }
+  }
 
   if (!mealExists) {
     return errorResponse(res, 404, "MEAL_NOT_FOUND", "Meal was not found.", {
@@ -261,7 +327,16 @@ function deleteMeal(req, res) {
     });
   }
 
-  const filteredMeals = meals.filter((meal) => meal.mealId !== mealId);
+  const filteredMeals = [];
+
+  for (let i = 0; i < meals.length; i++) {
+    const currentMeal = meals[i];
+
+    if (currentMeal.mealId !== mealId) {
+      filteredMeals.push(currentMeal);
+    }
+  }
+
   setMeals(filteredMeals);
 
   return successResponse(res, 200, {

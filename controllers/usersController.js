@@ -21,7 +21,17 @@ function getUserById(req, res) {
   }
 
   const userId = Number(id);
-  const user = getUsers().find((currentUser) => currentUser.userId === userId);
+  const users = getUsers();
+  let user;
+
+  for (let i = 0; i < users.length; i++) {
+    const currentUser = users[i];
+
+    if (currentUser.userId === userId) {
+      user = currentUser;
+      break;
+    }
+  }
 
   if (!user) {
     return errorResponse(res, 404, "USER_NOT_FOUND", "User was not found.", {
@@ -33,7 +43,9 @@ function getUserById(req, res) {
 }
 
 function createUser(req, res) {
-  const { firstName, lastName, userRole } = req.body;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const userRole = req.body.userRole;
 
   if (!firstName) {
     return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: firstName", {
@@ -82,7 +94,9 @@ function updateUser(req, res) {
     });
   }
 
-  const { firstName, lastName, userRole } = req.body;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  const userRole = req.body.userRole;
 
   if (!firstName) {
     return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: firstName", {
@@ -104,7 +118,16 @@ function updateUser(req, res) {
 
   const userId = Number(id);
   const users = getUsers();
-  const userIndex = users.findIndex((user) => user.userId === userId);
+  let userIndex = -1;
+
+  for (let i = 0; i < users.length; i++) {
+    const currentUser = users[i];
+
+    if (currentUser.userId === userId) {
+      userIndex = i;
+      break;
+    }
+  }
 
   if (userIndex === -1) {
     return errorResponse(res, 404, "USER_NOT_FOUND", "User was not found.", {
@@ -112,13 +135,21 @@ function updateUser(req, res) {
     });
   }
 
-  users[userIndex] = {
-    ...users[userIndex],
-    firstName: firstName,
-    lastName: lastName,
-    userRole: userRole,
-    updateDate: new Date().toISOString()
-  };
+  const existingUser = users[userIndex];
+  const updatedUser = {};
+
+  for (const key in existingUser) {
+    if (Object.prototype.hasOwnProperty.call(existingUser, key)) {
+      updatedUser[key] = existingUser[key];
+    }
+  }
+
+  updatedUser.firstName = firstName;
+  updatedUser.lastName = lastName;
+  updatedUser.userRole = userRole;
+  updatedUser.updateDate = new Date().toISOString();
+
+  users[userIndex] = updatedUser;
 
   return successResponse(res, 200, {
     userId: userId
@@ -137,7 +168,16 @@ function deleteUser(req, res) {
 
   const userId = Number(id);
   const users = getUsers();
-  const userExists = users.some((user) => user.userId === userId);
+  let userExists = false;
+
+  for (let i = 0; i < users.length; i++) {
+    const currentUser = users[i];
+
+    if (currentUser.userId === userId) {
+      userExists = true;
+      break;
+    }
+  }
 
   if (!userExists) {
     return errorResponse(res, 404, "USER_NOT_FOUND", "User was not found.", {
@@ -145,7 +185,16 @@ function deleteUser(req, res) {
     });
   }
 
-  const filteredUsers = users.filter((user) => user.userId !== userId);
+  const filteredUsers = [];
+
+  for (let i = 0; i < users.length; i++) {
+    const currentUser = users[i];
+
+    if (currentUser.userId !== userId) {
+      filteredUsers.push(currentUser);
+    }
+  }
+
   setUsers(filteredUsers);
 
   return successResponse(res, 200, {

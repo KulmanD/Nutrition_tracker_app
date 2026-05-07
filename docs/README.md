@@ -306,7 +306,7 @@ A user record has this shape:
 {
   "userId": 1,
   "firstName": "Denis",
-  "lastName": "Kolman",
+  "lastName": "Kulman",
   "createDate": "2026-05-01T10:00:00.000Z",
   "updateDate": "2026-05-01T10:00:00.000Z",
   "userRole": "admin"
@@ -332,7 +332,7 @@ curl -s http://localhost:3000/users | python3 -m json.tool
     {
       "userId": 1,
       "firstName": "Denis",
-      "lastName": "Kolman",
+      "lastName": "Kulman",
       "createDate": "2026-05-01T10:00:00.000Z",
       "updateDate": "2026-05-01T10:00:00.000Z",
       "userRole": "admin"

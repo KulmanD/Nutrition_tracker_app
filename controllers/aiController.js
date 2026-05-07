@@ -1,7 +1,7 @@
 const { successResponse, errorResponse } = require("../utils/responseHelper");
 
 function analyzeMealImage(req, res) {
-  const { imageName } = req.body;
+  const imageName = req.body.imageName;
 
   if (!imageName) {
     return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: imageName", {

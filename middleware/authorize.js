@@ -17,7 +17,18 @@ function authorize(allowedRoles) {
       );
     }
 
-    if (!allowedRoles.includes(currentRole)) {
+    let roleIsAllowed = false;
+
+    for (let i = 0; i < allowedRoles.length; i++) {
+      const allowedRole = allowedRoles[i];
+
+      if (allowedRole === currentRole) {
+        roleIsAllowed = true;
+        break;
+      }
+    }
+
+    if (!roleIsAllowed) {
       return errorResponse(
         res,
         403,

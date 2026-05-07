@@ -2,7 +2,7 @@ let users = [
   {
     userId: 1,
     firstName: "Denis",
-    lastName: "Kolman",
+    lastName: "Kulman",
     createDate: "2026-05-01T10:00:00.000Z",
     updateDate: "2026-05-01T10:00:00.000Z",
     userRole: "admin"
@@ -10,7 +10,7 @@ let users = [
   {
     userId: 2,
     firstName: "Yael",
-    lastName: "Dor-Rahli",
+    lastName: "Dorahly",
     createDate: "2026-05-01T10:10:00.000Z",
     updateDate: "2026-05-01T10:10:00.000Z",
     userRole: "user"
@@ -38,7 +38,18 @@ function getNextUserId() {
     return 1;
   }
 
-  return Math.max(...users.map((user) => user.userId)) + 1;
+  let highestUserId = Number(users[0].userId);
+
+  for (let i = 1; i < users.length; i++) {
+    const currentUser = users[i];
+    const currentUserId = Number(currentUser.userId);
+
+    if (currentUserId > highestUserId) {
+      highestUserId = currentUserId;
+    }
+  }
+
+  return highestUserId + 1;
 }
 
 module.exports = {

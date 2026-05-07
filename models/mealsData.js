@@ -113,7 +113,18 @@ function getNextMealId() {
     return 1;
   }
 
-  return Math.max(...meals.map((meal) => meal.mealId)) + 1;
+  let highestMealId = Number(meals[0].mealId);
+
+  for (let i = 1; i < meals.length; i++) {
+    const currentMeal = meals[i];
+    const currentMealId = Number(currentMeal.mealId);
+
+    if (currentMealId > highestMealId) {
+      highestMealId = currentMealId;
+    }
+  }
+
+  return highestMealId + 1;
 }
 
 module.exports = {
