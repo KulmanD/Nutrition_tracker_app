@@ -86,6 +86,29 @@ function validateMealBody(body) {
         message: "Missing required field: confirmedPortionGrams"
       };
     }
+
+    const nutrients = ['calories', 'protein', 'carbs', 'fat'];
+
+    for (const n of nutrients) {
+      if (req.body.items[i][n] === undefined || req.body.items[i][n] === null) {
+        return {
+          isValid: false,
+          field: `items[${i}].${n}`,
+          message: `Missing required field: ${n}`
+        };
+      }
+
+      const val = Number(req.body.items[i][n]);
+      if (isNaN(val) || val < 0) {
+        return {
+          isValid: false,
+          field: `items[${i}].${n}`,
+          message: `${n} must be a positive number.`
+        };
+      }
+    }
+
+
   }
 
   return {

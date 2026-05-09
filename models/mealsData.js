@@ -69,7 +69,7 @@ let meals = [
     mealId: 3,
     userId: 2,
     mealName: "pasta dinner",
-    mealDate: "2026-05-05",
+    mealDate: "2026-05-06",
     imagePath: "uploads/pasta.jpg",
     items: [
       {
