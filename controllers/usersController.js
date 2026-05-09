@@ -1,6 +1,8 @@
 const { getUsers, setUsers, getNextUserId } = require("../models/usersData");
 const { successResponse, errorResponse } = require("../utils/responseHelper");
 
+const allowedRoles = ['admin', 'user', 'manager'];
+
 function isValidNumericId(id) {
   const parsedId = Number(id);
   return Number.isInteger(parsedId) && parsedId > 0;
@@ -53,16 +55,33 @@ function createUser(req, res) {
     });
   }
 
+  if (typeof firstName !== 'string' || firstName.trim().length === 0) {
+    return errorResponse(res, 400, "VALIDATION_ERROR", "First name must be a non-empty string.", { field: "firstName" });
+  }
+
+
   if (!lastName) {
     return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: lastName", {
       field: "lastName"
     });
   }
 
+  if (typeof lastName !== 'string' || lastName.trim().length === 0) {
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Last name must be a non-empty string.", { field: "lastName" });
+  }
+
   if (!userRole) {
     return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: userRole", {
       field: "userRole"
     });
+  }
+
+  if (typeof userRole !== 'string' || userRole.trim().length === 0) {
+    return errorResponse(res, 400, "VALIDATION_ERROR", "User role must be a non-empty string.", { field: "userRole" });
+  }
+
+  if (!allowedRoles.includes(userRole)) {
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid or missing userRole. Allowed roles: admin, user, manager.", { field: "userRole" });
   }
 
   const now = new Date().toISOString();

@@ -9,6 +9,18 @@ function analyzeMealImage(req, res) {
     });
   }
 
+  if (typeof imageName !== 'string' || imageName.trim().length === 0) {
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Image name must be a non-empty string.", { field: "imageName" });
+  }
+
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+  const hasValidExtension = validExtensions.some(ext => imageName.toLowerCase().endsWith(ext));
+
+  if (!hasValidExtension) {
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid image format. Supported: jpg, jpeg, png, webp.", { field: "imageName" });
+  }
+
+
   const mockAiResult = {
     imageName: imageName,
     modelName: "mock-gemini-vision",

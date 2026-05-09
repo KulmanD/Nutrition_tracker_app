@@ -1,5 +1,7 @@
 const { getMeals } = require("../models/mealsData");
 const { successResponse, errorResponse } = require("../utils/responseHelper");
+const { getUsers } = require("../models/usersData");
+
 
 function isValidNumericId(id) {
   const parsedId = Number(id);
@@ -31,6 +33,14 @@ function getTodayDashboard(req, res) {
     carbs: 250,
     fat: 70
   };
+
+  const allUsers = getUsers();
+  const userExists = allUsers.some(u => u.userId === numericUserId);
+
+  if (!userExists) {
+    return errorResponse(res, 404, "USER_NOT_FOUND", "Cannot generate dashboard for a non-existent user.", { userId: numericUserId });
+  }
+
 
   const allMeals = getMeals();
   const meals = [];
