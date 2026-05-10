@@ -1,16 +1,16 @@
-function logger(req, res, next) {
-  const startTime = Date.now();
+function logger(req, res, next) { //our logging function
+  const startTime = Date.now(); //record when we started
 
-  res.on("finish", () => {
-    const endTime = Date.now();
-    const timeTaken = endTime - startTime;
+  res.on("finish", () => { //when the response is done
+    const endTime = Date.now(); //record when we finished
+    const timeTaken = endTime - startTime; //calculate how long it took
 
-    console.log(
+    console.log( //print it out
       `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - ${res.statusCode} - ${timeTaken}ms`
     );
   });
 
-  next();
+  next(); //move on to the next thing
 }
 
-module.exports = logger;
+module.exports = logger; //share the logger

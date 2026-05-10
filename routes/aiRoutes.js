@@ -1,9 +1,9 @@
-const express = require("express");
-const aiController = require("../controllers/aiController");
-const authorize = require("../middleware/authorize");
+const express = require("express"); //bring in express
+const aiController = require("../controllers/aiController"); //grab ai functions
+const authorize = require("../middleware/authorize"); //grab the auth check
 
-const router = express.Router();
+const router = express.Router(); //make a new router
 
-router.post("/analyze-meal", authorize(["admin", "manager", "user"]), aiController.analyzeMealImage);
+router.post("/analyze-meal", authorize(["admin", "manager", "user"]), aiController.analyzeMealImage); //analyze a meal image
 
-module.exports = router;
+module.exports = router; //share our routes

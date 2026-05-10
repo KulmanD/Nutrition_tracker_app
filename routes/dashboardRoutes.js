@@ -1,8 +1,8 @@
-const express = require("express");
-const dashboardController = require("../controllers/dashboardController");
+const express = require("express"); //bring in express
+const dashboardController = require("../controllers/dashboardController"); //grab dashboard functions
 
-const router = express.Router();
+const router = express.Router(); //make a new router
 
-router.get("/today", dashboardController.getTodayDashboard);
+router.get("/today", dashboardController.getTodayDashboard); //get today's stats
 
-module.exports = router;
+module.exports = router; //share our routes

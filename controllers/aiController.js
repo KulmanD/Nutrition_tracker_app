@@ -1,31 +1,31 @@
-const { successResponse, errorResponse } = require("../utils/responseHelper");
+const { successResponse, errorResponse } = require("../utils/responseHelper"); //grab our helpers
 
-function analyzeMealImage(req, res) {
-  const imageName = req.body.imageName;
+function analyzeMealImage(req, res) { //fake ai analysis
+  const imageName = req.body.imageName; //get the image name
 
-  if (!imageName) {
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: imageName", {
+  if (!imageName) { //if they forgot it
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: imageName", { //send an error
       field: "imageName"
     });
   }
 
-  if (typeof imageName !== 'string' || imageName.trim().length === 0) {
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Image name must be a non-empty string.", { field: "imageName" });
+  if (typeof imageName !== 'string' || imageName.trim().length === 0) { //if it's empty
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Image name must be a non-empty string.", { field: "imageName" }); //send an error
   }
 
-  const validExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
-  const hasValidExtension = validExtensions.some(ext => imageName.toLowerCase().endsWith(ext));
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.webp']; //allowed file types
+  const hasValidExtension = validExtensions.some(ext => imageName.toLowerCase().endsWith(ext)); //check if valid
 
-  if (!hasValidExtension) {
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid image format. Supported: jpg, jpeg, png, webp.", { field: "imageName" });
+  if (!hasValidExtension) { //if wrong file type
+    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid image format. Supported: jpg, jpeg, png, webp.", { field: "imageName" }); //send an error
   }
 
 
-  const mockAiResult = {
-    imageName: imageName,
-    modelName: "mock-gemini-vision",
-    message: "This is a mock AI response. No real external AI API was called.",
-    detectedItems: [
+  const mockAiResult = { //our fake result
+    imageName: imageName, //the image name
+    modelName: "mock-gemini-vision", //fake model
+    message: "This is a mock AI response. No real external AI API was called.", //disclaimer
+    detectedItems: [ //what it 'found'
       {
         foodName: "chicken breast",
         estimatedPortionGrams: 180,
@@ -54,12 +54,12 @@ function analyzeMealImage(req, res) {
         fat: 0.2
       }
     ],
-    nextStep: "User should review, edit, delete, or confirm the detected items before saving the meal."
+    nextStep: "User should review, edit, delete, or confirm the detected items before saving the meal." //what to do next
   };
 
-  return successResponse(res, 200, mockAiResult);
+  return successResponse(res, 200, mockAiResult); //send back the fake data
 }
 
-module.exports = {
+module.exports = { //share our ai function
   analyzeMealImage
 };

@@ -61,7 +61,7 @@ before(async () => {
   await waitForServer();
 });
 
-after(() => { if (serverProcess) serverProcess.kill(); });
+after(() => { if (serverProcess) serverProcess.kill(); }); //kill server when done
 
 // ── Valid meal body helper ───────────────────────────────
 

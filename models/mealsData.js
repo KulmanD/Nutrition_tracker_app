@@ -1,4 +1,4 @@
-let meals = [
+let meals = [ //our dummy meals list
   {
     mealId: 1,
     userId: 1,
@@ -100,31 +100,31 @@ let meals = [
   }
 ];
 
-function getMeals() {
-  return meals;
+function getMeals() { //function to get everyone
+  return meals; //give back the list
 }
 
-function setMeals(newMeals) {
-  meals = newMeals;
+function setMeals(newMeals) { //function to update list
+  meals = newMeals; //save the new list
 }
 
-function getNextMealId() {
-  if (meals.length === 0) {
-    return 1;
+function getNextMealId() { //find the next id to use
+  if (meals.length === 0) { //if empty
+    return 1; //start at 1
   }
 
-  let highestMealId = Number(meals[0].mealId);
+  let highestMealId = Number(meals[0].mealId); //start with the first id
 
-  for (let i = 1; i < meals.length; i++) {
-    const currentMeal = meals[i];
-    const currentMealId = Number(currentMeal.mealId);
+  for (let i = 1; i < meals.length; i++) { //loop through everyone
+    const currentMeal = meals[i]; //grab this meal
+    const currentMealId = Number(currentMeal.mealId); //get its id
 
-    if (currentMealId > highestMealId) {
-      highestMealId = currentMealId;
+    if (currentMealId > highestMealId) { //if it's bigger
+      highestMealId = currentMealId; //save it as the new highest
     }
   }
 
-  return highestMealId + 1;
+  return highestMealId + 1; //add one for the next
 }
 
 module.exports = {
