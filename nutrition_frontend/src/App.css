@@ -1,0 +1,434 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  min-height: 72px;
+  padding: 14px 32px;
+  border-bottom: 1px solid #dce7df;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand,
+.user-menu,
+.nav-links {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  gap: 10px;
+  color: #173629;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #2f7d5b;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.large-mark {
+  width: 54px;
+  height: 54px;
+  font-size: 1.5rem;
+  margin-bottom: 18px;
+}
+
+.nav-links {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nav-links a {
+  color: #52665b;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.nav-links a.active,
+.nav-links a:hover {
+  color: #173629;
+  background: #e7f2ec;
+}
+
+.user-menu {
+  gap: 12px;
+}
+
+.user-name {
+  color: #52665b;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.main-content {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px;
+  flex: 1;
+}
+
+.footer {
+  padding: 22px 32px;
+  color: #5f7067;
+  background: #ffffff;
+  border-top: 1px solid #dce7df;
+  text-align: center;
+}
+
+.login-page {
+  min-height: 100vh;
+  padding: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(135deg, rgba(47, 125, 91, 0.12), rgba(196, 129, 45, 0.1)),
+    #f5f8f6;
+}
+
+.login-panel {
+  width: min(940px, 100%);
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 36px;
+  align-items: center;
+}
+
+.login-copy h1,
+.page-header h1 {
+  margin: 0;
+  color: #173629;
+}
+
+.login-copy h1 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+.login-copy p {
+  max-width: 460px;
+  color: #52665b;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.form-panel,
+.settings-form,
+.nutrition-card,
+.content-block {
+  background: #ffffff;
+  border: 1px solid #dce7df;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(35, 49, 41, 0.08);
+}
+
+.form-panel,
+.settings-form {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+label {
+  color: #233129;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #c9d8cf;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #233129;
+  background: #ffffff;
+}
+
+input:focus,
+select:focus {
+  outline: 3px solid rgba(47, 125, 91, 0.2);
+  border-color: #2f7d5b;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primary-button {
+  margin-top: 10px;
+  background: #2f7d5b;
+  color: #ffffff;
+}
+
+.primary-button:hover {
+  background: #27694d;
+}
+
+.primary-button:disabled {
+  background: #9db8a9;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  color: #2f7d5b;
+  background: #e7f2ec;
+}
+
+.secondary-button:hover {
+  background: #d7eadf;
+}
+
+.small-button {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+.page-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.narrow-section {
+  max-width: 680px;
+}
+
+.page-header,
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #2f7d5b;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.date-pill,
+.section-heading span {
+  color: #5f7067;
+  background: #eef4f0;
+  border: 1px solid #dce7df;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.nutrition-card {
+  min-height: 156px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-title-row p,
+.card-title-row span {
+  margin: 0;
+}
+
+.card-title-row p {
+  color: #233129;
+  font-weight: 800;
+}
+
+.card-title-row span {
+  color: #6a7b72;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.card-value {
+  color: #173629;
+  font-size: 2rem;
+  font-weight: 850;
+}
+
+.card-value span {
+  margin-left: 6px;
+  color: #6a7b72;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.progress-track {
+  width: 100%;
+  height: 9px;
+  border-radius: 8px;
+  background: #e7ece9;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  display: block;
+  border-radius: 8px;
+  background: var(--card-color);
+}
+
+.content-block {
+  padding: 20px;
+}
+
+.section-heading {
+  margin-bottom: 14px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #173629;
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.meals-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.meals-table th,
+.meals-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e3ebe6;
+  text-align: left;
+}
+
+.meals-table th {
+  color: #52665b;
+  background: #f7faf8;
+  font-size: 0.9rem;
+}
+
+.meals-table td {
+  color: #233129;
+}
+
+.meals-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.empty-state,
+.status-text {
+  padding: 18px;
+  color: #5f7067;
+  background: #ffffff;
+  border: 1px dashed #b9cdc1;
+  border-radius: 8px;
+}
+
+.field-error {
+  margin: -2px 0 6px;
+  color: #a33e46;
+  font-size: 0.92rem;
+}
+
+.alert {
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.error-alert {
+  color: #8c2e38;
+  background: #fdebed;
+  border: 1px solid #f0b7bf;
+}
+
+.success-alert {
+  color: #246247;
+  background: #e7f5ed;
+  border: 1px solid #b9dbc7;
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .login-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .main-content,
+  .login-page {
+    padding: 20px;
+  }
+
+  .login-copy h1,
+  .page-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header,
+  .section-heading,
+  .user-menu {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
