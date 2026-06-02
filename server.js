@@ -3,7 +3,11 @@ const express = require("express"); //bring in express
 const usersRoutes = require("./routes/usersRoutes"); //grab user routes
 const mealsRoutes = require("./routes/mealsRoutes"); //grab meal routes
 const dashboardRoutes = require("./routes/dashboardRoutes"); //grab dashboard routes
+const authRoutes = require("./routes/authRoutes"); //grab frontend auth routes
+const apiUsersRoutes = require("./routes/apiUsersRoutes"); //grab current user route
+const settingsRoutes = require("./routes/settingsRoutes"); //grab settings routes
 
+const cors = require("./middleware/cors"); //allow frontend browser requests
 const logger = require("./middleware/logger"); //pull in logger
 const notFound = require("./middleware/notFound"); //pull in not found handler
 const errorHandler = require("./middleware/errorHandler"); //pull in error handler
@@ -12,6 +16,7 @@ const app = express(); //start the app up
 const port = 3000; //set our port to 3000
 
 //log every request
+app.use(cors); //allow the React app to call this API
 app.use(logger); //use our logger middleware
 
 //parse json bodies
@@ -31,6 +36,9 @@ app.get("/", (req, res) => { //main entry point
 });
 
 //api routes
+app.use("/api/auth", authRoutes); //hook up login/logout endpoints
+app.use("/api/users", apiUsersRoutes); //hook up current user endpoint
+app.use("/api/settings", settingsRoutes); //hook up settings endpoints
 app.use("/users", usersRoutes); //hook up user endpoints
 app.use("/meals", mealsRoutes); //hook up meal endpoints
 app.use("/dashboard", dashboardRoutes); //hook up dashboard endpoints
