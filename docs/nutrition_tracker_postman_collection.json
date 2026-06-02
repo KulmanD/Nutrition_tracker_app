@@ -31,7 +31,12 @@
           "name": "GET All Users",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "x-user-role",
+                "value": "admin"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/users",
               "protocol": "http",
@@ -45,7 +50,16 @@
           "name": "GET User By ID",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "x-user-role",
+                "value": "user"
+              },
+              {
+                "key": "x-user-id",
+                "value": "1"
+              }
+            ],
             "url": {
               "raw": "http://localhost:3000/users/1",
               "protocol": "http",
@@ -93,12 +107,16 @@
               },
               {
                 "key": "x-user-role",
-                "value": "manager"
+                "value": "user"
+              },
+              {
+                "key": "x-user-id",
+                "value": "2"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\",\n  \"userRole\": \"manager\"\n}"
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\",\n  \"userRole\": \"user\"\n}"
             },
             "url": {
               "raw": "http://localhost:3000/users/2",

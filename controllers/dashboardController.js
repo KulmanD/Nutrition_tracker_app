@@ -1,6 +1,7 @@
 const { getMeals } = require("../models/mealsData"); //grab meals
-const { successResponse, errorResponse } = require("../utils/responseHelper"); //grab helpers
+const { successResponse } = require("../utils/responseHelper"); //grab success helper
 const { getUsers } = require("../models/usersData"); //grab users
+const AppError = require("../utils/AppError"); //grab custom error
 
 
 function isValidNumericId(id) { //check if id is a good number
@@ -13,13 +14,13 @@ function getTodayDashboard(req, res) { //get stats for today
   const date = req.query.date || "2026-05-06"; //what day (default to may 6)
 
   if (!userId) { //if no user given
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required query parameter: userId", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required query parameter: userId", { //send error
       field: "userId"
     });
   }
 
   if (!isValidNumericId(userId)) { //if bad user id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid userId query parameter.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid userId query parameter.", { //send error
       field: "userId",
       value: userId
     });
@@ -38,7 +39,7 @@ function getTodayDashboard(req, res) { //get stats for today
   const userExists = allUsers.some(u => u.userId === numericUserId); //make sure user exists
 
   if (!userExists) { //if not exist
-    return errorResponse(res, 404, "USER_NOT_FOUND", "Cannot generate dashboard for a non-existent user.", { userId: numericUserId }); //send error
+    throw new AppError(404, "USER_NOT_FOUND", "Cannot generate dashboard for a non-existent user.", { userId: numericUserId }); //send error
   }
 
 

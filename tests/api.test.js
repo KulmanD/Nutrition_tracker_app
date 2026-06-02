@@ -93,7 +93,7 @@ describe("GET /", () => {
 
 describe("Users — GET /users", () => {
   it("200 — returns array of users", async () => {
-    const { status, body } = await api("GET", "/users");
+    const { status, body } = await api("GET", "/users", undefined, { "x-user-role": "admin" });
     assert.equal(status, 200);
     assertSuccess(body);
     assert.ok(Array.isArray(body.data));
@@ -106,32 +106,32 @@ describe("Users — GET /users", () => {
 
 describe("Users — GET /users/:id", () => {
   it("200 — valid id returns user", async () => {
-    const { status, body } = await api("GET", "/users/1");
+    const { status, body } = await api("GET", "/users/1", undefined, { "x-user-role": "user", "x-user-id": "1" });
     assert.equal(status, 200);
     assertSuccess(body);
     assert.equal(body.data.userId, 1);
   });
 
   it("404 — non-existent id", async () => {
-    const { status, body } = await api("GET", "/users/999");
+    const { status, body } = await api("GET", "/users/999", undefined, { "x-user-role": "admin" });
     assert.equal(status, 404);
     assertError(body, "USER_NOT_FOUND");
   });
 
   it("400 — non-numeric id", async () => {
-    const { status, body } = await api("GET", "/users/abc");
+    const { status, body } = await api("GET", "/users/abc", undefined, { "x-user-role": "admin" });
     assert.equal(status, 400);
     assertError(body, "VALIDATION_ERROR");
   });
 
   it("400 — negative id", async () => {
-    const { status, body } = await api("GET", "/users/-1");
+    const { status, body } = await api("GET", "/users/-1", undefined, { "x-user-role": "admin" });
     assert.equal(status, 400);
     assertError(body, "VALIDATION_ERROR");
   });
 
   it("400 — zero id", async () => {
-    const { status, body } = await api("GET", "/users/0");
+    const { status, body } = await api("GET", "/users/0", undefined, { "x-user-role": "admin" });
     assert.equal(status, 400);
     assertError(body, "VALIDATION_ERROR");
   });
@@ -218,6 +218,24 @@ describe("Users — PUT /users/:id", () => {
     assertSuccess(body);
   });
 
+  it("200 — regular user updates own user record", async () => {
+    const { status, body } = await api("PUT", "/users/1",
+      { firstName: "Self", lastName: "Update", userRole: "user" },
+      { "x-user-role": "user", "x-user-id": "1" }
+    );
+    assert.equal(status, 200);
+    assertSuccess(body);
+  });
+
+  it("403 — regular user cannot update another user", async () => {
+    const { status, body } = await api("PUT", "/users/2",
+      { firstName: "A", lastName: "B", userRole: "user" },
+      { "x-user-role": "user", "x-user-id": "1" }
+    );
+    assert.equal(status, 403);
+    assertError(body, "FORBIDDEN");
+  });
+
   it("404 — non-existent id", async () => {
     const { status, body } = await api("PUT", "/users/999",
       { firstName: "A", lastName: "B", userRole: "user" },
@@ -245,7 +263,7 @@ describe("Users — PUT /users/:id", () => {
     assertError(body, "VALIDATION_ERROR");
   });
 
-  it("403 — unauthorized role", async () => {
+  it("403 — regular user missing x-user-id", async () => {
     const { status, body } = await api("PUT", "/users/1",
       { firstName: "A", lastName: "B", userRole: "user" },
       { "x-user-role": "user" }
@@ -287,7 +305,7 @@ describe("Users — DELETE /users/:id", () => {
   });
 
   it("404 — same id after deletion", async () => {
-    const { status, body } = await api("GET", "/users/2");
+    const { status, body } = await api("GET", "/users/2", undefined, { "x-user-role": "admin" });
     assert.equal(status, 404);
     assertError(body, "USER_NOT_FOUND");
   });
@@ -604,14 +622,14 @@ describe("Invalid JSON body", () => {
 
 describe("Logger middleware", () => {
   it("does not interfere with response format", async () => {
-    const { status, body } = await api("GET", "/users");
+    const { status, body } = await api("GET", "/users", undefined, { "x-user-role": "admin" });
     assert.equal(status, 200);
     assertSuccess(body);
     assert.ok(Array.isArray(body.data));
   });
 
   it("does not interfere with error response format", async () => {
-    const { status, body } = await api("GET", "/users/abc");
+    const { status, body } = await api("GET", "/users/abc", undefined, { "x-user-role": "admin" });
     assert.equal(status, 400);
     assertError(body, "VALIDATION_ERROR");
   });

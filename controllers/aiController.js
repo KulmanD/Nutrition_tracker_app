@@ -1,23 +1,24 @@
-const { successResponse, errorResponse } = require("../utils/responseHelper"); //grab our helpers
+const { successResponse } = require("../utils/responseHelper"); //grab success helper
+const AppError = require("../utils/AppError"); //grab custom error
 
 function analyzeMealImage(req, res) { //fake ai analysis
   const imageName = req.body.imageName; //get the image name
 
   if (!imageName) { //if they forgot it
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: imageName", { //send an error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: imageName", { //send an error
       field: "imageName"
     });
   }
 
   if (typeof imageName !== 'string' || imageName.trim().length === 0) { //if it's empty
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Image name must be a non-empty string.", { field: "imageName" }); //send an error
+    throw new AppError(400, "VALIDATION_ERROR", "Image name must be a non-empty string.", { field: "imageName" }); //send an error
   }
 
   const validExtensions = ['.jpg', '.jpeg', '.png', '.webp']; //allowed file types
   const hasValidExtension = validExtensions.some(ext => imageName.toLowerCase().endsWith(ext)); //check if valid
 
   if (!hasValidExtension) { //if wrong file type
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid image format. Supported: jpg, jpeg, png, webp.", { field: "imageName" }); //send an error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid image format. Supported: jpg, jpeg, png, webp.", { field: "imageName" }); //send an error
   }
 
 

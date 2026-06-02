@@ -1,5 +1,6 @@
 const { getUsers, setUsers, getNextUserId } = require("../models/usersData"); //grab data functions
-const { successResponse, errorResponse } = require("../utils/responseHelper"); //grab helpers
+const { successResponse } = require("../utils/responseHelper"); //grab success helper
+const AppError = require("../utils/AppError"); //grab custom error
 
 const allowedRoles = ['admin', 'user', 'manager']; //who is allowed to use this
 
@@ -16,7 +17,7 @@ function getUserById(req, res) { //get one specific user
   const id = req.params.id; //get id from url
 
   if (!isValidNumericId(id)) { //if bad id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid user id.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid user id.", { //send error
       field: "id",
       value: id
     });
@@ -36,7 +37,7 @@ function getUserById(req, res) { //get one specific user
   }
 
   if (!user) { //if we didn't find them
-    return errorResponse(res, 404, "USER_NOT_FOUND", "User was not found.", { //send error
+    throw new AppError(404, "USER_NOT_FOUND", "User was not found.", { //send error
       userId: userId
     });
   }
@@ -50,38 +51,38 @@ function createUser(req, res) { //add a new user
   const userRole = req.body.userRole; //get their role
 
   if (!firstName) { //if missing first name
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: firstName", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: firstName", { //send error
       field: "firstName"
     });
   }
 
   if (typeof firstName !== 'string' || firstName.trim().length === 0) { //if it's not a valid name
-    return errorResponse(res, 400, "VALIDATION_ERROR", "First name must be a non-empty string.", { field: "firstName" }); //send error
+    throw new AppError(400, "VALIDATION_ERROR", "First name must be a non-empty string.", { field: "firstName" }); //send error
   }
 
 
   if (!lastName) { //if missing last name
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: lastName", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: lastName", { //send error
       field: "lastName"
     });
   }
 
   if (typeof lastName !== 'string' || lastName.trim().length === 0) { //if it's not a valid name
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Last name must be a non-empty string.", { field: "lastName" }); //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Last name must be a non-empty string.", { field: "lastName" }); //send error
   }
 
   if (!userRole) { //if missing role
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: userRole", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: userRole", { //send error
       field: "userRole"
     });
   }
 
   if (typeof userRole !== 'string' || userRole.trim().length === 0) { //if bad role
-    return errorResponse(res, 400, "VALIDATION_ERROR", "User role must be a non-empty string.", { field: "userRole" }); //send error
+    throw new AppError(400, "VALIDATION_ERROR", "User role must be a non-empty string.", { field: "userRole" }); //send error
   }
 
   if (!allowedRoles.includes(userRole)) { //if role is not one we allow
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid or missing userRole. Allowed roles: admin, user, manager.", { field: "userRole" }); //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid or missing userRole. Allowed roles: admin, user, manager.", { field: "userRole" }); //send error
   }
 
   const now = new Date().toISOString(); //get current time
@@ -107,7 +108,7 @@ function updateUser(req, res) { //change a user's details
   const id = req.params.id; //get id from url
 
   if (!isValidNumericId(id)) { //if bad id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid user id.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid user id.", { //send error
       field: "id",
       value: id
     });
@@ -118,21 +119,37 @@ function updateUser(req, res) { //change a user's details
   const userRole = req.body.userRole; //get role
 
   if (!firstName) { //if missing first name
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: firstName", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: firstName", { //send error
       field: "firstName"
     });
   }
 
   if (!lastName) { //if missing last name
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: lastName", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: lastName", { //send error
       field: "lastName"
     });
   }
 
   if (!userRole) { //if missing role
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Missing required field: userRole", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required field: userRole", { //send error
       field: "userRole"
     });
+  }
+
+  if (typeof firstName !== 'string' || firstName.trim().length === 0) { //if it's not a valid name
+    throw new AppError(400, "VALIDATION_ERROR", "First name must be a non-empty string.", { field: "firstName" }); //send error
+  }
+
+  if (typeof lastName !== 'string' || lastName.trim().length === 0) { //if it's not a valid name
+    throw new AppError(400, "VALIDATION_ERROR", "Last name must be a non-empty string.", { field: "lastName" }); //send error
+  }
+
+  if (typeof userRole !== 'string' || userRole.trim().length === 0) { //if bad role
+    throw new AppError(400, "VALIDATION_ERROR", "User role must be a non-empty string.", { field: "userRole" }); //send error
+  }
+
+  if (!allowedRoles.includes(userRole)) { //if role is not one we allow
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid or missing userRole. Allowed roles: admin, user, manager.", { field: "userRole" }); //send error
   }
 
   const userId = Number(id); //make it a number
@@ -149,7 +166,7 @@ function updateUser(req, res) { //change a user's details
   }
 
   if (userIndex === -1) { //if we didn't find them
-    return errorResponse(res, 404, "USER_NOT_FOUND", "User was not found.", { //send error
+    throw new AppError(404, "USER_NOT_FOUND", "User was not found.", { //send error
       userId: userId
     });
   }
@@ -179,7 +196,7 @@ function deleteUser(req, res) { //remove a user
   const id = req.params.id; //get id from url
 
   if (!isValidNumericId(id)) { //if bad id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid user id.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid user id.", { //send error
       field: "id",
       value: id
     });
@@ -199,7 +216,7 @@ function deleteUser(req, res) { //remove a user
   }
 
   if (!userExists) { //if we didn't find them
-    return errorResponse(res, 404, "USER_NOT_FOUND", "User was not found.", { //send error
+    throw new AppError(404, "USER_NOT_FOUND", "User was not found.", { //send error
       userId: userId
     });
   }

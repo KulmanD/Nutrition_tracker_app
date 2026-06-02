@@ -1,5 +1,6 @@
 const { getMeals, setMeals, getNextMealId } = require("../models/mealsData"); //grab data functions
-const { successResponse, errorResponse } = require("../utils/responseHelper"); //grab helpers
+const { successResponse } = require("../utils/responseHelper"); //grab success helper
+const AppError = require("../utils/AppError"); //grab custom error
 
 function isValidNumericId(id) { //check if id is a good number
   const parsedId = Number(id); //make it a number
@@ -121,7 +122,7 @@ function getAllMeals(req, res) { //get all meals
 
   if (req.query.userId) { //if asking for a specific user
     if (!isValidNumericId(req.query.userId)) { //if bad user id
-      return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid userId query parameter.", { //send error
+      throw new AppError(400, "VALIDATION_ERROR", "Invalid userId query parameter.", { //send error
         field: "userId",
         value: req.query.userId
       });
@@ -162,7 +163,7 @@ function getMealById(req, res) { //get one meal
   const id = req.params.id; //get id from url
 
   if (!isValidNumericId(id)) { //if bad id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
       field: "id",
       value: id
     });
@@ -182,7 +183,7 @@ function getMealById(req, res) { //get one meal
   }
 
   if (!meal) { //if we didn't find the wanted meal
-    return errorResponse(res, 404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
+    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
       mealId: mealId
     });
   }
@@ -194,7 +195,7 @@ function createMeal(req, res) { //add a new meal
   const validation = validateMealBody(req.body); //check if data is good
 
   if (!validation.isValid) { //if bad data
-    return errorResponse(res, 400, "VALIDATION_ERROR", validation.message, { //send error
+    throw new AppError(400, "VALIDATION_ERROR", validation.message, { //send error
       field: validation.field
     });
   }
@@ -244,7 +245,7 @@ function updateMeal(req, res) { //change a meal
   const id = req.params.id; //get id from url
 
   if (!isValidNumericId(id)) { //if bad id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
       field: "id",
       value: id
     });
@@ -253,7 +254,7 @@ function updateMeal(req, res) { //change a meal
   const validation = validateMealBody(req.body); //check if new data is good
 
   if (!validation.isValid) { //if bad data
-    return errorResponse(res, 400, "VALIDATION_ERROR", validation.message, { //send error
+    throw new AppError(400, "VALIDATION_ERROR", validation.message, { //send error
       field: validation.field
     });
   }
@@ -272,7 +273,7 @@ function updateMeal(req, res) { //change a meal
   }
 
   if (mealIndex === -1) { //if we didn't find it
-    return errorResponse(res, 404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
+    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
       mealId: mealId
     });
   }
@@ -325,7 +326,7 @@ function deleteMeal(req, res) { //remove a meal
   const id = req.params.id; //get id from url
 
   if (!isValidNumericId(id)) { //if bad id
-    return errorResponse(res, 400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
       field: "id",
       value: id
     });
@@ -345,7 +346,7 @@ function deleteMeal(req, res) { //remove a meal
   }
 
   if (!mealExists) { //if we didn't find it
-    return errorResponse(res, 404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
+    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
       mealId: mealId
     });
   }
