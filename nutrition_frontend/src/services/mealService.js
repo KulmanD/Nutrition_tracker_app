@@ -14,3 +14,13 @@ export async function getMeals() {
   const userId = getCurrentUserId();
   return request(`/meals?userId=${userId}`);
 }
+
+export async function createMeal(meal) {
+  return request("/meals", {
+    method: "POST",
+    body: {
+      ...meal,
+      userId: getCurrentUserId()
+    }
+  });
+}

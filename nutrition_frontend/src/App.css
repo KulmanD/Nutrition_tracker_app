@@ -151,6 +151,20 @@
   gap: 10px;
 }
 
+.meal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.meal-form label,
+.meal-form input,
+.meal-form .field-error,
+.meal-form .alert,
+.meal-form button {
+  grid-column: span 2;
+}
+
 label {
   color: #233129;
   font-weight: 700;
@@ -430,5 +444,17 @@ select:focus {
   .user-menu {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .meal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .meal-form label,
+  .meal-form input,
+  .meal-form .field-error,
+  .meal-form .alert,
+  .meal-form button {
+    grid-column: span 1;
   }
 }
