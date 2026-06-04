@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import MealsTable from "../components/MealsTable";
 import { createMeal, deleteMeal, getMeals } from "../services/mealService";
 
-const initialFormValues = {
-  mealName: "",
-  mealDate: "2026-05-06",
+const emptyFoodItem = {
   foodName: "",
   confirmedPortionGrams: "",
   calories: "",
@@ -12,6 +10,14 @@ const initialFormValues = {
   carbs: "",
   fat: ""
 };
+
+function getInitialFormValues() {
+  return {
+    mealName: "",
+    mealDate: "2026-05-06",
+    items: [{ ...emptyFoodItem }]
+  };
+}
 
 function validateMeal(values) {
   const nextErrors = {};
@@ -25,22 +31,34 @@ function validateMeal(values) {
     nextErrors.mealDate = "Meal date is required.";
   }
 
-  if (!values.foodName.trim()) {
-    nextErrors.foodName = "Food name is required.";
-  }
+  const itemErrors = values.items.map((item) => {
+    const currentErrors = {};
 
-  for (const field of numericFields) {
-    const value = Number(values[field]);
-
-    if (values[field] === "") {
-      nextErrors[field] = "This field is required.";
-    } else if (Number.isNaN(value) || value < 0) {
-      nextErrors[field] = "Enter a valid non-negative number.";
+    if (!item.foodName.trim()) {
+      currentErrors.foodName = "Food name is required.";
     }
-  }
 
-  if (Number(values.confirmedPortionGrams) <= 0 && !nextErrors.confirmedPortionGrams) {
-    nextErrors.confirmedPortionGrams = "Portion must be greater than 0.";
+    for (const field of numericFields) {
+      const value = Number(item[field]);
+
+      if (item[field] === "") {
+        currentErrors[field] = "This field is required.";
+      } else if (Number.isNaN(value) || value < 0) {
+        currentErrors[field] = "Enter a valid non-negative number.";
+      }
+    }
+
+    if (Number(item.confirmedPortionGrams) <= 0 && !currentErrors.confirmedPortionGrams) {
+      currentErrors.confirmedPortionGrams = "Portion must be greater than 0.";
+    }
+
+    return currentErrors;
+  });
+
+  const hasItemErrors = itemErrors.some((itemError) => Object.keys(itemError).length > 0);
+
+  if (hasItemErrors) {
+    nextErrors.items = itemErrors;
   }
 
   return nextErrors;
@@ -50,7 +68,7 @@ function Meals() {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [formValues, setFormValues] = useState(initialFormValues);
+  const [formValues, setFormValues] = useState(getInitialFormValues());
   const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [formMessage, setFormMessage] = useState("");
@@ -100,6 +118,48 @@ function Meals() {
     }));
   }
 
+  function handleItemChange(index, event) {
+    const { name, value } = event.target;
+
+    setFormValues((currentValues) => {
+      const nextItems = currentValues.items.map((item, itemIndex) => {
+        if (itemIndex !== index) {
+          return item;
+        }
+
+        return {
+          ...item,
+          [name]: value
+        };
+      });
+
+      return {
+        ...currentValues,
+        items: nextItems
+      };
+    });
+  }
+
+  function handleAddItem() {
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      items: [...currentValues.items, { ...emptyFoodItem }]
+    }));
+  }
+
+  function handleRemoveItem(index) {
+    setFormValues((currentValues) => {
+      if (currentValues.items.length === 1) {
+        return currentValues;
+      }
+
+      return {
+        ...currentValues,
+        items: currentValues.items.filter((item, itemIndex) => itemIndex !== index)
+      };
+    });
+  }
+
   function handleSelectMeal(mealId) {
     setSelectedMealId(mealId);
     setDeleteMessage("");
@@ -124,19 +184,17 @@ function Meals() {
       await createMeal({
         mealName: formValues.mealName.trim(),
         mealDate: formValues.mealDate,
-        items: [
-          {
-            foodName: formValues.foodName.trim(),
-            confirmedPortionGrams: Number(formValues.confirmedPortionGrams),
-            calories: Number(formValues.calories),
-            protein: Number(formValues.protein),
-            carbs: Number(formValues.carbs),
-            fat: Number(formValues.fat)
-          }
-        ]
+        items: formValues.items.map((item) => ({
+          foodName: item.foodName.trim(),
+          confirmedPortionGrams: Number(item.confirmedPortionGrams),
+          calories: Number(item.calories),
+          protein: Number(item.protein),
+          carbs: Number(item.carbs),
+          fat: Number(item.fat)
+        }))
       });
       await refreshMeals();
-      setFormValues(initialFormValues);
+      setFormValues(getInitialFormValues());
       setFormErrors({});
       setFormMessage("Meal added successfully.");
     } catch (requestError) {
@@ -290,78 +348,112 @@ function Meals() {
           />
           {formErrors.mealDate && <p className="field-error">{formErrors.mealDate}</p>}
 
-          <label htmlFor="foodName">Food name</label>
-          <input
-            id="foodName"
-            name="foodName"
-            type="text"
-            value={formValues.foodName}
-            onChange={handleChange}
-            placeholder="Chicken breast"
-          />
-          {formErrors.foodName && <p className="field-error">{formErrors.foodName}</p>}
+          <div className="food-items-list">
+            {formValues.items.map((item, index) => (
+              <div className="food-item-card" key={index}>
+                <div className="item-heading">
+                  <h3>Food item {index + 1}</h3>
+                  <button
+                    type="button"
+                    className="secondary-button small-button"
+                    onClick={() => handleRemoveItem(index)}
+                    disabled={formValues.items.length === 1}
+                  >
+                    Remove item
+                  </button>
+                </div>
 
-          <label htmlFor="confirmedPortionGrams">Portion grams</label>
-          <input
-            id="confirmedPortionGrams"
-            name="confirmedPortionGrams"
-            type="number"
-            min="0"
-            step="0.1"
-            value={formValues.confirmedPortionGrams}
-            onChange={handleChange}
-          />
-          {formErrors.confirmedPortionGrams && (
-            <p className="field-error">{formErrors.confirmedPortionGrams}</p>
-          )}
+                <label htmlFor={`foodName-${index}`}>Food name</label>
+                <input
+                  id={`foodName-${index}`}
+                  name="foodName"
+                  type="text"
+                  value={item.foodName}
+                  onChange={(event) => handleItemChange(index, event)}
+                  placeholder="Chicken breast"
+                />
+                {formErrors.items && formErrors.items[index] && formErrors.items[index].foodName && (
+                  <p className="field-error">{formErrors.items[index].foodName}</p>
+                )}
 
-          <label htmlFor="calories">Calories</label>
-          <input
-            id="calories"
-            name="calories"
-            type="number"
-            min="0"
-            step="0.1"
-            value={formValues.calories}
-            onChange={handleChange}
-          />
-          {formErrors.calories && <p className="field-error">{formErrors.calories}</p>}
+                <label htmlFor={`confirmedPortionGrams-${index}`}>Portion grams</label>
+                <input
+                  id={`confirmedPortionGrams-${index}`}
+                  name="confirmedPortionGrams"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={item.confirmedPortionGrams}
+                  onChange={(event) => handleItemChange(index, event)}
+                />
+                {formErrors.items &&
+                  formErrors.items[index] &&
+                  formErrors.items[index].confirmedPortionGrams && (
+                    <p className="field-error">{formErrors.items[index].confirmedPortionGrams}</p>
+                  )}
 
-          <label htmlFor="protein">Protein</label>
-          <input
-            id="protein"
-            name="protein"
-            type="number"
-            min="0"
-            step="0.1"
-            value={formValues.protein}
-            onChange={handleChange}
-          />
-          {formErrors.protein && <p className="field-error">{formErrors.protein}</p>}
+                <label htmlFor={`calories-${index}`}>Calories</label>
+                <input
+                  id={`calories-${index}`}
+                  name="calories"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={item.calories}
+                  onChange={(event) => handleItemChange(index, event)}
+                />
+                {formErrors.items && formErrors.items[index] && formErrors.items[index].calories && (
+                  <p className="field-error">{formErrors.items[index].calories}</p>
+                )}
 
-          <label htmlFor="carbs">Carbs</label>
-          <input
-            id="carbs"
-            name="carbs"
-            type="number"
-            min="0"
-            step="0.1"
-            value={formValues.carbs}
-            onChange={handleChange}
-          />
-          {formErrors.carbs && <p className="field-error">{formErrors.carbs}</p>}
+                <label htmlFor={`protein-${index}`}>Protein</label>
+                <input
+                  id={`protein-${index}`}
+                  name="protein"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={item.protein}
+                  onChange={(event) => handleItemChange(index, event)}
+                />
+                {formErrors.items && formErrors.items[index] && formErrors.items[index].protein && (
+                  <p className="field-error">{formErrors.items[index].protein}</p>
+                )}
 
-          <label htmlFor="fat">Fat</label>
-          <input
-            id="fat"
-            name="fat"
-            type="number"
-            min="0"
-            step="0.1"
-            value={formValues.fat}
-            onChange={handleChange}
-          />
-          {formErrors.fat && <p className="field-error">{formErrors.fat}</p>}
+                <label htmlFor={`carbs-${index}`}>Carbs</label>
+                <input
+                  id={`carbs-${index}`}
+                  name="carbs"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={item.carbs}
+                  onChange={(event) => handleItemChange(index, event)}
+                />
+                {formErrors.items && formErrors.items[index] && formErrors.items[index].carbs && (
+                  <p className="field-error">{formErrors.items[index].carbs}</p>
+                )}
+
+                <label htmlFor={`fat-${index}`}>Fat</label>
+                <input
+                  id={`fat-${index}`}
+                  name="fat"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={item.fat}
+                  onChange={(event) => handleItemChange(index, event)}
+                />
+                {formErrors.items && formErrors.items[index] && formErrors.items[index].fat && (
+                  <p className="field-error">{formErrors.items[index].fat}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button type="button" className="secondary-button" onClick={handleAddItem}>
+            Add food item
+          </button>
 
           {formMessage && <p className="alert success-alert">{formMessage}</p>}
           {formError && <p className="alert error-alert">{formError}</p>}

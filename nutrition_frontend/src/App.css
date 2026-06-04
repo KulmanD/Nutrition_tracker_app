@@ -165,6 +165,35 @@
   grid-column: span 2;
 }
 
+.food-items-list {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.food-item-card {
+  padding: 16px;
+  border: 1px solid #dce7df;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.item-heading {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item-heading h3 {
+  margin: 0;
+  color: #173629;
+}
+
 label {
   color: #233129;
   font-weight: 700;
@@ -461,6 +490,7 @@ select:focus {
 .theme-dark .brand,
 .theme-dark .page-header h1,
 .theme-dark .section-heading h2,
+.theme-dark .item-heading h3,
 .theme-dark label,
 .theme-dark .card-title-row p,
 .theme-dark .card-value,
@@ -506,6 +536,10 @@ select:focus {
 }
 
 .theme-dark .meal-details {
+  border-color: #34453c;
+}
+
+.theme-dark .food-item-card {
   border-color: #34453c;
 }
 
@@ -576,7 +610,19 @@ select:focus {
   .meal-form input,
   .meal-form .field-error,
   .meal-form .alert,
-  .meal-form button {
+  .meal-form button,
+  .food-items-list,
+  .food-item-card,
+  .item-heading {
     grid-column: span 1;
+  }
+
+  .food-item-card {
+    grid-template-columns: 1fr;
+  }
+
+  .item-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
