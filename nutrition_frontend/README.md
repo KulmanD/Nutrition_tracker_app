@@ -1,18 +1,18 @@
-# NutriTrack Frontend
+# nutritrack frontend
 
-Assignment 3 React frontend for the nutrition / meal tracking application.
+assignment 3 react frontend for the nutrition / meal tracking app.
 
-The frontend was created with Create React App and connects to the existing Assignment 2 Express backend.
+it uses create react app and connects to the assignment 2 express backend.
 
-## Run Locally
+## run locally
 
-1. Start the backend from the repository root:
+1. start the backend from the main project folder:
 
 ```bash
 npm start
 ```
 
-2. Start the frontend from this folder:
+2. start the frontend:
 
 ```bash
 cd nutrition_frontend
@@ -20,54 +20,61 @@ npm install
 npm start
 ```
 
-The frontend start script uses port `3001`, so it opens at:
+- frontend: http://localhost:3001
+- backend api base url: http://localhost:3000
 
-- Frontend: http://localhost:3001
-- Backend API base URL: http://localhost:3000
+## demo login
 
-## Demo Login
+you can login with one of these mock users:
 
-- Email: `denis@example.com`
-- Password: `password123`
+- denis@example.com / password123
+- yael@example.com / password123
 
-## Pages
+## pages
 
-- `/login` - login form with client-side validation
-- `/dashboard` - daily nutrition summary cards and meals table
-- `/meals` - dynamic table of meals from the backend
-- `/settings` - editable username, email, and theme preference
+- `/login` - login with a mock user.
+- `/dashboard` - shows daily nutrition totals and recent meals.
+- `/meals` - shows meal history, lets you add a meal, select a meal, see its food items, and delete the selected meal.
+- `/settings` - lets you edit profile nickname, profile email, and light/dark theme.
 
-## Backend Endpoints Used
+## main features
+
+login:
+- email and password validation
+- loading and error message
+- redirect after login
+
+dashboard:
+- nutrition cards
+- recent meals from backend
+
+meals:
+- meals table from backend
+- add meal manually
+- add more than one food item
+- select meal to see breakdown
+- delete selected meal
+
+settings:
+- edit profile nickname
+- edit profile email
+- change light/dark theme
+
+## backend endpoints used
 
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/users/me`
 - `GET /api/settings`
 - `PUT /api/settings`
-- `GET /dashboard/today?userId=1`
-- `GET /meals?userId=1`
+- `GET /dashboard/today?userId=<userId>`
+- `GET /meals?userId=<userId>`
+- `POST /meals`
+- `DELETE /meals/:id`
 
-The backend already had `/meals` and `/dashboard/today`. Minimal mock endpoints were added for the Assignment 3 login, current user, and settings requirements.
-
-## Test / Build
-
-```bash
-npm run build
-```
-
-Optional test runner:
+## optional checks
 
 ```bash
 npm test
+npm run build
 ```
-
-## Submission Notes
-
-Do not include `node_modules` in the final zip. Screenshots should include Login, Dashboard, Table/Meals, and Settings.
-
-Screenshot files are included in `screenshots/`:
-
-- `login.png`
-- `dashboard.png`
-- `meals-table.png`
-- `settings.png`
