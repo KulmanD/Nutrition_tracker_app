@@ -49,33 +49,38 @@ function Dashboard() {
     return <p className="alert error-alert">{error}</p>;
   }
 
+  const meals = Array.isArray(dashboard?.meals) ? dashboard.meals : [];
+  const consumed = dashboard?.consumed || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const goals = dashboard?.goals || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const dashboardDate = dashboard?.date || "Today";
+
   const cards = [
     {
       title: "Calories",
-      value: dashboard.consumed.calories,
+      value: consumed.calories,
       unit: "kcal",
-      goal: dashboard.goals.calories,
+      goal: goals.calories,
       color: cardColors.calories
     },
     {
       title: "Protein",
-      value: dashboard.consumed.protein,
+      value: consumed.protein,
       unit: "g",
-      goal: dashboard.goals.protein,
+      goal: goals.protein,
       color: cardColors.protein
     },
     {
       title: "Carbs",
-      value: dashboard.consumed.carbs,
+      value: consumed.carbs,
       unit: "g",
-      goal: dashboard.goals.carbs,
+      goal: goals.carbs,
       color: cardColors.carbs
     },
     {
       title: "Fat",
-      value: dashboard.consumed.fat,
+      value: consumed.fat,
       unit: "g",
-      goal: dashboard.goals.fat,
+      goal: goals.fat,
       color: cardColors.fat
     }
   ];
@@ -87,7 +92,7 @@ function Dashboard() {
           <p className="eyebrow">Daily summary</p>
           <h1>Dashboard</h1>
         </div>
-        <span className="date-pill">{dashboard.date}</span>
+        <span className="date-pill">{dashboardDate}</span>
       </div>
 
       <div className="cards-grid">
@@ -106,9 +111,9 @@ function Dashboard() {
       <section className="content-block">
         <div className="section-heading">
           <h2>Meals for the day</h2>
-          <span>{dashboard.meals.length} meals</span>
+          <span>{meals.length} meals</span>
         </div>
-        <MealsTable meals={dashboard.meals} />
+        <MealsTable meals={meals} />
       </section>
     </section>
   );
