@@ -173,6 +173,8 @@ function Meals() {
     return <p className="status-text">Loading meals...</p>;
   }
 
+  const selectedMeal = meals.find((meal) => meal.mealId === selectedMealId);
+
   return (
     <section className="page-section">
       <div className="page-header">
@@ -212,6 +214,50 @@ function Meals() {
               selectedMealId={selectedMealId}
               onSelectMeal={handleSelectMeal}
             />
+
+            <div className="meal-details">
+              {selectedMeal ? (
+                <>
+                  <div className="section-heading">
+                    <h2>{selectedMeal.mealName}</h2>
+                    <span>{selectedMeal.mealDate}</span>
+                  </div>
+
+                  {selectedMeal.items && selectedMeal.items.length > 0 ? (
+                    <div className="table-wrap">
+                      <table className="meals-table">
+                        <thead>
+                          <tr>
+                            <th>Food</th>
+                            <th>Portion</th>
+                            <th>Calories</th>
+                            <th>Protein</th>
+                            <th>Carbs</th>
+                            <th>Fat</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedMeal.items.map((item) => (
+                            <tr key={item.itemId}>
+                              <td>{item.foodName}</td>
+                              <td>{item.confirmedPortionGrams} g</td>
+                              <td>{item.calories} kcal</td>
+                              <td>{item.protein} g</td>
+                              <td>{item.carbs} g</td>
+                              <td>{item.fat} g</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="empty-state">No food items found for this meal.</p>
+                  )}
+                </>
+              ) : (
+                <p className="empty-state">Select a meal to see its food items.</p>
+              )}
+            </div>
           </>
         )}
       </section>

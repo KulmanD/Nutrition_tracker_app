@@ -402,6 +402,12 @@ select:focus {
   background: #e7f2ec;
 }
 
+.meal-details {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e3ebe6;
+}
+
 .empty-state,
 .status-text {
   padding: 18px;
@@ -496,6 +502,10 @@ select:focus {
 
 .theme-dark .meals-table th,
 .theme-dark .meals-table td {
+  border-color: #34453c;
+}
+
+.theme-dark .meal-details {
   border-color: #34453c;
 }
 
