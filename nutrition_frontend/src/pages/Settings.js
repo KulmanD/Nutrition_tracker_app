@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import {
   getSettings,
   normalizeTheme,
-  PROFILE_CHANGE_EVENT,
   saveSettings,
-  saveStoredProfileName,
   saveStoredTheme,
   THEME_CHANGE_EVENT
 } from "../services/settingsService";
@@ -15,7 +13,7 @@ function validateSettings(values) {
   const nextErrors = {};
 
   if (!values.username.trim()) {
-    nextErrors.username = "Username is required.";
+    nextErrors.username = "Profile nickname is required.";
   }
 
   if (!values.email.trim()) {
@@ -107,9 +105,7 @@ function Settings() {
         theme: savedSettings.theme
       });
       saveStoredTheme(savedSettings.theme);
-      saveStoredProfileName(savedSettings.username);
       window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
-      window.dispatchEvent(new Event(PROFILE_CHANGE_EVENT));
       setMessage("Settings saved successfully.");
     } catch (error) {
       setRequestError(error.message);
@@ -132,7 +128,7 @@ function Settings() {
       </div>
 
       <form className="settings-form" onSubmit={handleSubmit} noValidate>
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">Profile nickname</label>
         <input
           id="username"
           name="username"
