@@ -436,6 +436,91 @@ select:focus {
   border: 1px solid #b9dbc7;
 }
 
+.theme-dark {
+  background: #17211d;
+  color: #e8f0ea;
+}
+
+.theme-dark .navbar,
+.theme-dark .footer,
+.theme-dark .form-panel,
+.theme-dark .settings-form,
+.theme-dark .nutrition-card,
+.theme-dark .content-block {
+  background: #202b25;
+  border-color: #3a4a41;
+  box-shadow: none;
+}
+
+.theme-dark .brand,
+.theme-dark .page-header h1,
+.theme-dark .section-heading h2,
+.theme-dark label,
+.theme-dark .card-title-row p,
+.theme-dark .card-value,
+.theme-dark .meals-table td {
+  color: #eef7f0;
+}
+
+.theme-dark .nav-links a,
+.theme-dark .user-name,
+.theme-dark .footer,
+.theme-dark .card-title-row span,
+.theme-dark .card-value span,
+.theme-dark .table-actions span {
+  color: #b9c9bf;
+}
+
+.theme-dark .nav-links a.active,
+.theme-dark .nav-links a:hover,
+.theme-dark .date-pill,
+.theme-dark .section-heading span,
+.theme-dark .empty-state,
+.theme-dark .status-text {
+  color: #e8f0ea;
+  background: #27362f;
+  border-color: #3a4a41;
+}
+
+.theme-dark input,
+.theme-dark select {
+  color: #eef7f0;
+  background: #17211d;
+  border-color: #4b6054;
+}
+
+.theme-dark .meals-table th {
+  color: #d4e0d8;
+  background: #27362f;
+}
+
+.theme-dark .meals-table th,
+.theme-dark .meals-table td {
+  border-color: #34453c;
+}
+
+.theme-dark .meals-table tbody tr.selected-row td {
+  background: #294739;
+}
+
+.theme-dark .progress-track {
+  background: #34453c;
+}
+
+.theme-dark .secondary-button {
+  color: #d5efe0;
+  background: #294739;
+}
+
+.theme-dark .secondary-button:hover {
+  background: #335845;
+}
+
+.theme-dark .secondary-button:disabled {
+  color: #829088;
+  background: #2a342f;
+}
+
 @media (max-width: 900px) {
   .navbar {
     align-items: flex-start;

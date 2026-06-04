@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getSettings, saveSettings } from "../services/settingsService";
+import {
+  getSettings,
+  saveSettings,
+  saveStoredTheme,
+  THEME_CHANGE_EVENT
+} from "../services/settingsService";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -98,6 +103,8 @@ function Settings() {
         email: savedSettings.email,
         theme: savedSettings.theme
       });
+      saveStoredTheme(savedSettings.theme);
+      window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
       setMessage("Settings saved successfully.");
     } catch (error) {
       setRequestError(error.message);
