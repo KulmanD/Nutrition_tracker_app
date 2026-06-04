@@ -221,6 +221,12 @@ select:focus {
   background: #d7eadf;
 }
 
+.secondary-button:disabled {
+  color: #8a9a91;
+  background: #edf2ef;
+  cursor: not-allowed;
+}
+
 .small-button {
   min-height: 36px;
   padding: 8px 12px;
@@ -348,6 +354,19 @@ select:focus {
   overflow-x: auto;
 }
 
+.table-actions {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.table-actions span {
+  color: #6a7b72;
+  font-weight: 700;
+}
+
 .meals-table {
   width: 100%;
   min-width: 720px;
@@ -373,6 +392,14 @@ select:focus {
 
 .meals-table tr:last-child td {
   border-bottom: 0;
+}
+
+.meals-table tbody tr {
+  cursor: pointer;
+}
+
+.meals-table tbody tr.selected-row td {
+  background: #e7f2ec;
 }
 
 .empty-state,

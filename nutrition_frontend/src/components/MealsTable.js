@@ -10,7 +10,7 @@ function formatDate(dateValue) {
   });
 }
 
-function MealsTable({ meals }) {
+function MealsTable({ meals, selectedMealId, onSelectMeal }) {
   if (!meals || meals.length === 0) {
     return <p className="empty-state">No meals found for this user.</p>;
   }
@@ -20,6 +20,7 @@ function MealsTable({ meals }) {
       <table className="meals-table">
         <thead>
           <tr>
+            {onSelectMeal && <th>Select</th>}
             <th>Meal</th>
             <th>Date</th>
             <th>Calories</th>
@@ -30,7 +31,22 @@ function MealsTable({ meals }) {
         </thead>
         <tbody>
           {meals.map((meal) => (
-            <tr key={meal.mealId}>
+            <tr
+              key={meal.mealId}
+              className={selectedMealId === meal.mealId ? "selected-row" : ""}
+              onClick={() => onSelectMeal && onSelectMeal(meal.mealId)}
+            >
+              {onSelectMeal && (
+                <td>
+                  <input
+                    type="radio"
+                    name="selectedMeal"
+                    aria-label={`Select ${meal.mealName}`}
+                    checked={selectedMealId === meal.mealId}
+                    onChange={() => onSelectMeal(meal.mealId)}
+                  />
+                </td>
+              )}
               <td>{meal.mealName}</td>
               <td>{formatDate(meal.mealDate)}</td>
               <td>{meal.totalCalories} kcal</td>

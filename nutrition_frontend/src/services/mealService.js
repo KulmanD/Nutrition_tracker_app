@@ -24,3 +24,12 @@ export async function createMeal(meal) {
     }
   });
 }
+
+export async function deleteMeal(mealId) {
+  return request(`/meals/${mealId}`, {
+    method: "DELETE",
+    headers: {
+      "x-user-role": "admin"
+    }
+  });
+}

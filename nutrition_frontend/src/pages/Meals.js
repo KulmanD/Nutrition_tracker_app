@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import MealsTable from "../components/MealsTable";
-import { createMeal, getMeals } from "../services/mealService";
+import { createMeal, deleteMeal, getMeals } from "../services/mealService";
 
 const initialFormValues = {
   mealName: "",
@@ -55,6 +55,10 @@ function Meals() {
   const [saving, setSaving] = useState(false);
   const [formMessage, setFormMessage] = useState("");
   const [formError, setFormError] = useState("");
+  const [selectedMealId, setSelectedMealId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   async function refreshMeals() {
     const data = await getMeals();
@@ -94,6 +98,12 @@ function Meals() {
       ...currentValues,
       [name]: value
     }));
+  }
+
+  function handleSelectMeal(mealId) {
+    setSelectedMealId(mealId);
+    setDeleteMessage("");
+    setDeleteError("");
   }
 
   async function handleSubmit(event) {
@@ -136,6 +146,29 @@ function Meals() {
     }
   }
 
+  async function handleDeleteSelected() {
+    setDeleteMessage("");
+    setDeleteError("");
+
+    if (!selectedMealId) {
+      setDeleteError("Select a meal before deleting.");
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deleteMeal(selectedMealId);
+      setMeals((currentMeals) => currentMeals.filter((meal) => meal.mealId !== selectedMealId));
+      setSelectedMealId(null);
+      setDeleteMessage("Meal deleted successfully.");
+    } catch (requestError) {
+      setDeleteError(requestError.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   if (loading) {
     return <p className="status-text">Loading meals...</p>;
   }
@@ -149,7 +182,39 @@ function Meals() {
         </div>
       </div>
 
-      {error ? <p className="alert error-alert">{error}</p> : <MealsTable meals={meals} />}
+      <section className="content-block">
+        <div className="section-heading">
+          <h2>Meals List</h2>
+          <span>{meals.length} meals</span>
+        </div>
+
+        {error ? (
+          <p className="alert error-alert">{error}</p>
+        ) : (
+          <>
+            <div className="table-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleDeleteSelected}
+                disabled={!selectedMealId || deleting}
+              >
+                {deleting ? "Deleting..." : "Delete selected meal"}
+              </button>
+              {!selectedMealId && <span>Select one meal to enable delete.</span>}
+            </div>
+
+            {deleteMessage && <p className="alert success-alert">{deleteMessage}</p>}
+            {deleteError && <p className="alert error-alert">{deleteError}</p>}
+
+            <MealsTable
+              meals={meals}
+              selectedMealId={selectedMealId}
+              onSelectMeal={handleSelectMeal}
+            />
+          </>
+        )}
+      </section>
 
       <section className="content-block">
         <div className="section-heading">
