@@ -11,7 +11,7 @@ let settingsByUserId = {
     userId: 2,
     username: "Yael",
     email: "yael@example.com",
-    theme: "system"
+    theme: "light"
   },
   3: {
     userId: 3,

@@ -3,7 +3,7 @@ const { getSettings, updateSettings } = require("../models/settingsModel");
 const { successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 
-const allowedThemes = ["light", "dark", "system"];
+const allowedThemes = ["light", "dark"];
 
 function getCurrentUserId(req) {
   const headerUserId = Number(req.header("x-user-id") || req.query.userId || 1);
@@ -50,7 +50,7 @@ function validateSettings(body) {
     return {
       isValid: false,
       field: "theme",
-      message: "Theme must be light, dark, or system."
+      message: "Theme must be light or dark."
     };
   }
 

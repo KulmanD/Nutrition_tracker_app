@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import {
   getSettings,
+  normalizeTheme,
+  PROFILE_CHANGE_EVENT,
   saveSettings,
+  saveStoredProfileName,
   saveStoredTheme,
   THEME_CHANGE_EVENT
 } from "../services/settingsService";
@@ -49,7 +52,7 @@ function Settings() {
           setValues({
             username: settings.username || "",
             email: settings.email || "",
-            theme: settings.theme || "light"
+            theme: normalizeTheme(settings.theme || "light")
           });
           setRequestError("");
         }
@@ -104,7 +107,9 @@ function Settings() {
         theme: savedSettings.theme
       });
       saveStoredTheme(savedSettings.theme);
+      saveStoredProfileName(savedSettings.username);
       window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+      window.dispatchEvent(new Event(PROFILE_CHANGE_EVENT));
       setMessage("Settings saved successfully.");
     } catch (error) {
       setRequestError(error.message);
@@ -137,7 +142,7 @@ function Settings() {
         />
         {errors.username && <p className="field-error">{errors.username}</p>}
 
-        <label htmlFor="settings-email">Email</label>
+        <label htmlFor="settings-email">Profile email</label>
         <input
           id="settings-email"
           name="email"
@@ -151,7 +156,6 @@ function Settings() {
         <select id="theme" name="theme" value={values.theme} onChange={handleChange}>
           <option value="light">Light</option>
           <option value="dark">Dark</option>
-          <option value="system">System</option>
         </select>
         {errors.theme && <p className="field-error">{errors.theme}</p>}
 
