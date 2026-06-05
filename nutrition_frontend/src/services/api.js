@@ -1,5 +1,6 @@
 export const API_BASE_URL = "http://localhost:3000";
 export const AUTH_STORAGE_KEY = "nutritrackAuth";
+export const AUTH_USER_CHANGE_EVENT = "nutritrack-auth-user-change";
 
 export function getStoredAuth() {
   const rawValue = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -22,6 +23,26 @@ export function saveStoredAuth(authData) {
 
 export function clearStoredAuth() {
   localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+export function updateStoredAuthUser(userUpdates) {
+  const authData = getStoredAuth();
+
+  if (!authData || !authData.user) {
+    return null;
+  }
+
+  const nextAuthData = {
+    ...authData,
+    user: {
+      ...authData.user,
+      ...userUpdates
+    }
+  };
+
+  saveStoredAuth(nextAuthData);
+  window.dispatchEvent(new Event(AUTH_USER_CHANGE_EVENT));
+  return nextAuthData.user;
 }
 
 export function getAuthUser() {

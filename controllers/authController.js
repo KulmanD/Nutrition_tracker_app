@@ -21,7 +21,14 @@ function isValidEmail(email) { //check if email looks valid
 }
 
 function findDemoAccount(email, password) { //find matching mock account
-  return demoAccounts.find((account) => account.email === email && account.password === password); //match email and password
+  return demoAccounts.find((account) => { //check every mock account
+    if (account.password !== password) { //password still has to match
+      return false;
+    }
+
+    const settings = getSettings(account.userId); //grab the editable profile email
+    return settings.email === email;
+  });
 }
 
 function buildUserResponse(user, settings) { //build user data for frontend
@@ -29,7 +36,7 @@ function buildUserResponse(user, settings) { //build user data for frontend
     userId: user.userId, //user id
     firstName: user.firstName, //first name
     lastName: user.lastName, //last name
-    fullName: `${user.firstName} ${user.lastName}`, //full name
+    fullName: settings.username, //show editable full username
     email: settings.email, //profile email
     userRole: user.userRole //user role
   };

@@ -6,6 +6,7 @@ import {
   saveStoredTheme,
   THEME_CHANGE_EVENT
 } from "../services/settingsService";
+import { updateStoredAuthUser } from "../services/api";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,7 +14,7 @@ function validateSettings(values) {
   const nextErrors = {};
 
   if (!values.username.trim()) {
-    nextErrors.username = "Profile nickname is required.";
+    nextErrors.username = "Username is required.";
   }
 
   if (!values.email.trim()) {
@@ -104,6 +105,11 @@ function Settings() {
         email: savedSettings.email,
         theme: savedSettings.theme
       });
+      updateStoredAuthUser({
+        firstName: savedSettings.username,
+        fullName: savedSettings.username,
+        email: savedSettings.email
+      });
       saveStoredTheme(savedSettings.theme);
       window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
       setMessage("Settings saved successfully.");
@@ -128,7 +134,7 @@ function Settings() {
       </div>
 
       <form className="settings-form" onSubmit={handleSubmit} noValidate>
-        <label htmlFor="username">Profile nickname</label>
+        <label htmlFor="username">Profile Username</label>
         <input
           id="username"
           name="username"

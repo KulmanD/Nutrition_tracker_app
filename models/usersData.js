@@ -10,7 +10,7 @@ let users = [ //our dummy users list
   {
     userId: 2,
     firstName: "Yael",
-    lastName: "Dorahly",
+    lastName: "Durahly",
     createDate: "2026-05-01T10:10:00.000Z",
     updateDate: "2026-05-01T10:10:00.000Z",
     userRole: "user"

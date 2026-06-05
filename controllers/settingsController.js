@@ -75,7 +75,7 @@ function updateUserSettings(req, res) { //update user settings
 
   const userId = getCurrentUserId(req); //get current user
   const settings = updateSettings(userId, { //save settings
-    username: req.body.username.trim(), //clean nickname
+    username: req.body.username.trim(), //clean username
     email: req.body.email.trim(), //clean email
     theme: req.body.theme //save theme
   });

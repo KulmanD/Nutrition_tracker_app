@@ -3,19 +3,19 @@ const { getUsers } = require("./usersData"); //grab users
 let settingsByUserId = { //mock settings by user id
   1: { //settings for denis
     userId: 1, //user id
-    username: "Denis", //profile nickname
+    username: "Denis Kulman", //full username
     email: "denis@example.com", //profile email
     theme: "light" //theme choice
   },
   2: { //settings for yael
     userId: 2, //user id
-    username: "Yael", //profile nickname
+    username: "Yael Durahly", //full username
     email: "yael@example.com", //profile email
-    theme: "light" //theme choice
+    theme: "dark" //theme choice
   },
   3: { //settings for amit
     userId: 3, //user id
-    username: "Amit", //profile nickname
+    username: "Amit Levi", //full username
     email: "amit@example.com", //profile email
     theme: "dark" //theme choice
   }
@@ -27,7 +27,7 @@ function buildDefaultSettings(userId) { //make default settings
 
   return { //send back defaults
     userId: userId, //user id
-    username: user ? user.firstName : "Guest", //use first name or guest
+    username: user ? `${user.firstName} ${user.lastName}` : "Guest", //use full name or guest
     email: `user${userId}@example.com`, //default profile email
     theme: "light" //default theme
   };
@@ -47,7 +47,7 @@ function updateSettings(userId, nextSettings) { //update settings for user
 
   settingsByUserId[userId] = { //save new settings
     userId: userId, //user id
-    username: nextSettings.username, //profile nickname
+    username: nextSettings.username, //full username
     email: nextSettings.email, //profile email
     theme: nextSettings.theme, //theme choice
     createDate: currentSettings.createDate || now, //keep old create date or make one

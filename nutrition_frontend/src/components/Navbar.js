@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { AUTH_USER_CHANGE_EVENT } from "../services/api";
 import { getCurrentUser, getLoggedInUser, logout } from "../services/authService";
 
 function Navbar() {
@@ -21,8 +22,15 @@ function Navbar() {
         }
       });
 
+    function handleAuthUserChange() {
+      setUser(getLoggedInUser());
+    }
+
+    window.addEventListener(AUTH_USER_CHANGE_EVENT, handleAuthUserChange);
+
     return () => {
       isMounted = false;
+      window.removeEventListener(AUTH_USER_CHANGE_EVENT, handleAuthUserChange);
     };
   }, []);
 

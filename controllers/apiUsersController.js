@@ -31,7 +31,7 @@ function getMe(req, res) { //get logged in user
     userId: user.userId, //user id
     firstName: user.firstName, //first name
     lastName: user.lastName, //last name
-    fullName: `${user.firstName} ${user.lastName}`, //full name
+    fullName: settings.username, //show editable full username
     email: settings.email, //profile email
     userRole: user.userRole //user role
   });
