@@ -20,7 +20,7 @@ npm install
 npm start
 ```
 
-- frontend: http://localhost:3001
+- frontend: http://localhost:5173
 - backend api base url: http://localhost:3000
 
 ## demo login
