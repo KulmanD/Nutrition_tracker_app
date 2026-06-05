@@ -1,89 +1,89 @@
-const { getUsers } = require("../models/usersData");
-const { getSettings, updateSettings } = require("../models/settingsModel");
-const { successResponse } = require("../utils/responseHelper");
-const AppError = require("../utils/AppError");
+const { getUsers } = require("../models/usersData"); //grab users
+const { getSettings, updateSettings } = require("../models/settingsModel"); //grab settings functions
+const { successResponse } = require("../utils/responseHelper"); //grab success helper
+const AppError = require("../utils/AppError"); //grab custom error
 
-const allowedThemes = ["light", "dark"];
+const allowedThemes = ["light", "dark"]; //themes we allow
 
-function getCurrentUserId(req) {
-  const headerUserId = Number(req.header("x-user-id") || req.query.userId || 1);
+function getCurrentUserId(req) { //get current user id
+  const headerUserId = Number(req.header("x-user-id") || req.query.userId || 1); //read header or query
 
-  if (!Number.isInteger(headerUserId) || headerUserId <= 0) {
-    throw new AppError(400, "VALIDATION_ERROR", "Invalid current user id.", {
-      field: "x-user-id"
+  if (!Number.isInteger(headerUserId) || headerUserId <= 0) { //if id is bad
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid current user id.", { //send error
+      field: "x-user-id" //bad header
     });
   }
 
-  const userExists = getUsers().some((user) => user.userId === headerUserId);
+  const userExists = getUsers().some((user) => user.userId === headerUserId); //check user exists
 
-  if (!userExists) {
-    throw new AppError(404, "USER_NOT_FOUND", "Settings user was not found.", {
-      userId: headerUserId
+  if (!userExists) { //if user is missing
+    throw new AppError(404, "USER_NOT_FOUND", "Settings user was not found.", { //send error
+      userId: headerUserId //missing user id
     });
   }
 
-  return headerUserId;
+  return headerUserId; //send back user id
 }
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+function isValidEmail(email) { //check email format
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); //true if email looks ok
 }
 
-function validateSettings(body) {
-  if (!body.username || typeof body.username !== "string" || body.username.trim().length === 0) {
-    return {
-      isValid: false,
-      field: "username",
-      message: "Username is required."
+function validateSettings(body) { //check settings body
+  if (!body.username || typeof body.username !== "string" || body.username.trim().length === 0) { //if username is missing
+    return { //send validation info
+      isValid: false, //not valid
+      field: "username", //bad field
+      message: "Username is required." //error message
     };
   }
 
-  if (!body.email || typeof body.email !== "string" || !isValidEmail(body.email)) {
-    return {
-      isValid: false,
-      field: "email",
-      message: "Valid email is required."
+  if (!body.email || typeof body.email !== "string" || !isValidEmail(body.email)) { //if email is missing or bad
+    return { //send validation info
+      isValid: false, //not valid
+      field: "email", //bad field
+      message: "Valid email is required." //error message
     };
   }
 
-  if (!body.theme || !allowedThemes.includes(body.theme)) {
-    return {
-      isValid: false,
-      field: "theme",
-      message: "Theme must be light or dark."
+  if (!body.theme || !allowedThemes.includes(body.theme)) { //if theme is not allowed
+    return { //send validation info
+      isValid: false, //not valid
+      field: "theme", //bad field
+      message: "Theme must be light or dark." //error message
     };
   }
 
-  return {
-    isValid: true
+  return { //settings are good
+    isValid: true //valid settings
   };
 }
 
-function getUserSettings(req, res) {
-  const userId = getCurrentUserId(req);
-  return successResponse(res, 200, getSettings(userId));
+function getUserSettings(req, res) { //get user settings
+  const userId = getCurrentUserId(req); //get current user
+  return successResponse(res, 200, getSettings(userId)); //send settings
 }
 
-function updateUserSettings(req, res) {
-  const validation = validateSettings(req.body);
+function updateUserSettings(req, res) { //update user settings
+  const validation = validateSettings(req.body); //check body
 
-  if (!validation.isValid) {
-    throw new AppError(400, "VALIDATION_ERROR", validation.message, {
-      field: validation.field
+  if (!validation.isValid) { //if settings are bad
+    throw new AppError(400, "VALIDATION_ERROR", validation.message, { //send error
+      field: validation.field //bad field
     });
   }
 
-  const userId = getCurrentUserId(req);
-  const settings = updateSettings(userId, {
-    username: req.body.username.trim(),
-    email: req.body.email.trim(),
-    theme: req.body.theme
+  const userId = getCurrentUserId(req); //get current user
+  const settings = updateSettings(userId, { //save settings
+    username: req.body.username.trim(), //clean nickname
+    email: req.body.email.trim(), //clean email
+    theme: req.body.theme //save theme
   });
 
-  return successResponse(res, 200, settings);
+  return successResponse(res, 200, settings); //send updated settings
 }
 
-module.exports = {
+module.exports = { //share settings functions
   getUserSettings,
   updateUserSettings
 };

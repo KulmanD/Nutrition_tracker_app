@@ -1,10 +1,10 @@
-const express = require("express");
-const settingsController = require("../controllers/settingsController");
-const asyncHandler = require("../middleware/asyncHandler");
+const express = require("express"); //bring in express
+const settingsController = require("../controllers/settingsController"); //grab settings functions
+const asyncHandler = require("../middleware/asyncHandler"); //grab error wrapper
 
-const router = express.Router();
+const router = express.Router(); //make a new router
 
-router.get("/", asyncHandler(settingsController.getUserSettings));
-router.put("/", asyncHandler(settingsController.updateUserSettings));
+router.get("/", asyncHandler(settingsController.getUserSettings)); //get user settings
+router.put("/", asyncHandler(settingsController.updateUserSettings)); //update user settings
 
-module.exports = router;
+module.exports = router; //share our routes
