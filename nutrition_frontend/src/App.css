@@ -472,8 +472,8 @@ select:focus {
 }
 
 .theme-dark {
-  background: #17211d;
-  color: #e8f0ea;
+  background: #2f3338;
+  color: #f3f4f6;
 }
 
 .theme-dark .navbar,
@@ -482,8 +482,8 @@ select:focus {
 .theme-dark .settings-form,
 .theme-dark .nutrition-card,
 .theme-dark .content-block {
-  background: #202b25;
-  border-color: #3a4a41;
+  background: #3b4047;
+  border-color: #5b626b;
   box-shadow: none;
 }
 
@@ -495,7 +495,7 @@ select:focus {
 .theme-dark .card-title-row p,
 .theme-dark .card-value,
 .theme-dark .meals-table td {
-  color: #eef7f0;
+  color: #f9fafb;
 }
 
 .theme-dark .nav-links a,
@@ -504,7 +504,7 @@ select:focus {
 .theme-dark .card-title-row span,
 .theme-dark .card-value span,
 .theme-dark .table-actions span {
-  color: #b9c9bf;
+  color: #d1d5db;
 }
 
 .theme-dark .nav-links a.active,
@@ -513,56 +513,56 @@ select:focus {
 .theme-dark .section-heading span,
 .theme-dark .empty-state,
 .theme-dark .status-text {
-  color: #e8f0ea;
-  background: #27362f;
-  border-color: #3a4a41;
+  color: #f9fafb;
+  background: #4b5563;
+  border-color: #6b7280;
 }
 
 .theme-dark input,
 .theme-dark select {
-  color: #eef7f0;
-  background: #17211d;
-  border-color: #4b6054;
+  color: #f9fafb;
+  background: #343941;
+  border-color: #6b7280;
 }
 
 .theme-dark .meals-table th {
-  color: #d4e0d8;
-  background: #27362f;
+  color: #f3f4f6;
+  background: #4b5563;
 }
 
 .theme-dark .meals-table th,
 .theme-dark .meals-table td {
-  border-color: #34453c;
+  border-color: #555d67;
 }
 
 .theme-dark .meal-details {
-  border-color: #34453c;
+  border-color: #555d67;
 }
 
 .theme-dark .food-item-card {
-  border-color: #34453c;
+  border-color: #555d67;
 }
 
 .theme-dark .meals-table tbody tr.selected-row td {
-  background: #294739;
+  background: #555d67;
 }
 
 .theme-dark .progress-track {
-  background: #34453c;
+  background: #555d67;
 }
 
 .theme-dark .secondary-button {
-  color: #d5efe0;
-  background: #294739;
+  color: #f9fafb;
+  background: #555d67;
 }
 
 .theme-dark .secondary-button:hover {
-  background: #335845;
+  background: #626b76;
 }
 
 .theme-dark .secondary-button:disabled {
-  color: #829088;
-  background: #2a342f;
+  color: #9ca3af;
+  background: #3f444b;
 }
 
 @media (max-width: 900px) {
