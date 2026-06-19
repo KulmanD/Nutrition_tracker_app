@@ -1,4 +1,11 @@
-export const API_BASE_URL = "http://localhost:3000";
+// Base URL of the backend API. Configurable via env so the same build can point at
+// different backends; falls back to the Assignment 2/3 localhost server when unset.
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3000";
+
+// When "true", the A4 service functions return local mock fixtures instead of calling
+// the network. Lets the AI/socket UIs be built before Denis's backend endpoints exist.
+export const USE_MOCKS = process.env.REACT_APP_USE_MOCKS === "true";
+
 export const AUTH_STORAGE_KEY = "nutritrackAuth";
 export const AUTH_USER_CHANGE_EVENT = "nutritrack-auth-user-change";
 
@@ -76,6 +83,32 @@ export async function request(path, options = {}) {
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, fetchOptions);
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok || (result && result.success === false)) {
+    const message = result && result.error ? result.error.message : "The request failed.";
+    throw new Error(message);
+  }
+
+  return result && Object.prototype.hasOwnProperty.call(result, "data") ? result.data : result;
+}
+
+// Upload helper for multipart/form-data (e.g. image uploads). Unlike request(), it must
+// NOT set Content-Type — the browser sets the multipart boundary itself. Sends the same
+// auth headers and unwraps the standard envelope the same way.
+export async function requestMultipart(path, formData, options = {}) {
+  const headers = {
+    ...getAuthHeaders(),
+    ...(options.headers || {})
+  };
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    ...options,
+    headers,
+    body: formData
+  });
+
   const result = await response.json().catch(() => null);
 
   if (!response.ok || (result && result.success === false)) {
