@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "db:migrate": "node scripts/dbMigrate.js",
+    "db:seed": "node scripts/dbSeed.js",
+    "db:setup": "npm run db:migrate && npm run db:seed"
   },
   "keywords": [
     "node",
@@ -17,6 +20,9 @@
   "author": "Denis Kulman and Yael Dorahly",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "mysql2": "^3.22.5",
+    "sequelize": "^6.37.8"
   }
 }
