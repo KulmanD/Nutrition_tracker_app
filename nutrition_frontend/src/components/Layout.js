@@ -6,6 +6,7 @@ import {
   saveStoredTheme,
   THEME_CHANGE_EVENT
 } from "../services/settingsService";
+import { connectSocket, disconnectSocket, emitPresenceJoin } from "../services/socketService";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 
@@ -36,6 +37,25 @@ function Layout() {
     return () => {
       isMounted = false;
       window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const socket = connectSocket();
+
+    function handleConnect() {
+      emitPresenceJoin();
+    }
+
+    socket.on("connect", handleConnect);
+
+    if (socket.connected) {
+      emitPresenceJoin();
+    }
+
+    return () => {
+      socket.off("connect", handleConnect);
+      disconnectSocket();
     };
   }, []);
 

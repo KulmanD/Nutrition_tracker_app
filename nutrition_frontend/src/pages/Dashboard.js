@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import MealsTable from "../components/MealsTable";
 import NutritionCard from "../components/NutritionCard";
+import { getAuthUser } from "../services/api";
 import { getDashboard } from "../services/mealService";
+import { connectSocket } from "../services/socketService";
 
 const cardColors = {
   calories: "#2f7d5b",
@@ -18,26 +20,46 @@ function Dashboard() {
   useEffect(() => {
     let isMounted = true;
 
-    getDashboard()
-      .then((data) => {
-        if (isMounted) {
-          setDashboard(data);
-          setError("");
-        }
-      })
-      .catch((requestError) => {
-        if (isMounted) {
-          setError(requestError.message);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
-      });
+    function loadDashboard() {
+      return getDashboard()
+        .then((data) => {
+          if (isMounted) {
+            setDashboard(data);
+            setError("");
+          }
+        })
+        .catch((requestError) => {
+          if (isMounted) {
+            setError(requestError.message);
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setLoading(false);
+          }
+        });
+    }
+
+    loadDashboard();
+
+    // Live update: dashboard:updated is a "nudge" — when it arrives for this user we
+    // simply re-fetch, so the screen matches a manual refresh. See API_CONTRACT.md (3.5).
+    const socket = connectSocket();
+    const user = getAuthUser();
+    const myUserId = user ? user.userId : null;
+
+    function handleDashboardUpdated(payload) {
+      if (!payload || payload.userId !== myUserId) {
+        return;
+      }
+      loadDashboard();
+    }
+
+    socket.on("dashboard:updated", handleDashboardUpdated);
 
     return () => {
       isMounted = false;
+      socket.off("dashboard:updated", handleDashboardUpdated);
     };
   }, []);
 
