@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import MealsTable from "../components/MealsTable";
 import { createMeal, deleteMeal, getMeals } from "../services/mealService";
+import { todayLocalISO } from "../utils/date";
 
 const emptyFoodItem = {
   foodName: "",
@@ -14,7 +15,7 @@ const emptyFoodItem = {
 function getInitialFormValues() {
   return {
     mealName: "",
-    mealDate: "2026-05-06",
+    mealDate: todayLocalISO(),
     items: [{ ...emptyFoodItem }]
   };
 }

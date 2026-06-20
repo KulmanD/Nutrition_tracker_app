@@ -3,7 +3,13 @@ function formatDate(dateValue) {
     return "No date";
   }
 
-  return new Date(`${dateValue}T12:00:00`).toLocaleDateString("en-US", {
+  const parsed = new Date(`${dateValue}T12:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return dateValue;
+  }
+
+  return parsed.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric"
