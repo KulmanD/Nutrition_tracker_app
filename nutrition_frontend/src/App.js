@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AddMealByAI from "./pages/AddMealByAI";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Meals from "./pages/Meals";
@@ -20,6 +21,7 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/add-meal-ai" element={<AddMealByAI />} />
           <Route path="/meals" element={<Meals />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

@@ -50,6 +50,7 @@ function Navbar() {
 
       <nav className="nav-links" aria-label="Main navigation">
         <NavLink to="/dashboard">Dashboard</NavLink>
+        <NavLink to="/add-meal-ai">Add Meal with AI</NavLink>
         <NavLink to="/meals">Meals</NavLink>
         <NavLink to="/settings">Settings</NavLink>
       </nav>
