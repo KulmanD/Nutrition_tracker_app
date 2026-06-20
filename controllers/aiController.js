@@ -1,5 +1,6 @@
 const { successResponse } = require("../utils/responseHelper"); //grab success helper
 const AppError = require("../utils/AppError"); //grab custom error
+const aiImageAnalysisService = require("../services/aiImageAnalysisService");
 
 function analyzeMealImage(req, res) { //fake ai analysis
   const imageName = req.body.imageName; //get the image name
@@ -61,6 +62,22 @@ function analyzeMealImage(req, res) { //fake ai analysis
   return successResponse(res, 200, mockAiResult); //send back the fake data
 }
 
+async function analyzeUploadedMealImage(req, res) {
+  if (!req.file) {
+    throw new AppError(400, "VALIDATION_ERROR", "Missing required image file.", {
+      field: "image"
+    });
+  }
+
+  const analysis = await aiImageAnalysisService.analyzeMealImage(req.file, {
+    mealDate: req.body.mealDate || null,
+    userId: req.currentUserId || null
+  });
+
+  return successResponse(res, 200, analysis);
+}
+
 module.exports = { //share our ai function
-  analyzeMealImage
+  analyzeMealImage,
+  analyzeUploadedMealImage
 };

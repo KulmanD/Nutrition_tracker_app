@@ -1,5 +1,6 @@
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs/promises");
 const { spawn, spawnSync } = require("node:child_process");
 const path = require("node:path");
 const { io } = require("socket.io-client");
@@ -22,6 +23,16 @@ async function api(method, urlPath, body, headers = {}) {
     }
   }
   const res = await fetch(`${BASE}${urlPath}`, opts);
+  const json = await res.json();
+  return { status: res.status, body: json };
+}
+
+async function multipartApi(urlPath, formData, headers = {}) {
+  const res = await fetch(`${BASE}${urlPath}`, {
+    method: "POST",
+    headers,
+    body: formData
+  });
   const json = await res.json();
   return { status: res.status, body: json };
 }
@@ -113,6 +124,11 @@ before(async () => {
 
   serverProcess = spawn("node", ["server.js"], {
     cwd: ROOT_DIR,
+    env: {
+      ...process.env,
+      AI_MODE: "mock",
+      GEMINI_API_KEY: ""
+    },
     stdio: "pipe"
   });
   serverProcess.stderr.on("data", d => process.stderr.write(d));
@@ -617,6 +633,101 @@ describe("POST /meals/analyze-image", () => {
 
   it("403 — missing role header", async () => {
     const { status, body } = await api("POST", "/meals/analyze-image", { imageName: "x.jpg" });
+    assert.equal(status, 403);
+    assertError(body, "FORBIDDEN");
+  });
+});
+
+// ═════════════════════════════════════════════════════════
+//  AI IMAGE UPLOAD
+// ═════════════════════════════════════════════════════════
+
+describe("POST /api/ai/analyze-image", () => {
+  function buildImageForm(filename = "meal.jpg", mimeType = "image/jpeg", bytes = Buffer.from([255, 216, 255, 224, 0, 16])) {
+    const formData = new FormData();
+    formData.append("image", new Blob([bytes], { type: mimeType }), filename);
+    formData.append("mealDate", "2026-05-07");
+    return formData;
+  }
+
+  it("200 — accepts multipart image and returns mock AI contract data", async () => {
+    const { status, body } = await multipartApi("/api/ai/analyze-image", buildImageForm(), {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 200);
+    assertSuccess(body);
+    assert.equal(typeof body.data.analysisId, "string");
+    assert.match(body.data.imagePath, /^uploads\/meal-/);
+    assert.equal(body.data.modelName, "mock-gemini-vision");
+    assert.ok(Array.isArray(body.data.detectedItems));
+    assert.ok(body.data.detectedItems.length > 0);
+    assert.equal(typeof body.data.detectedItems[0].clientItemId, "string");
+    assert.equal(typeof body.data.detectedItems[0].foodName, "string");
+    assert.ok("estimatedPortionGrams" in body.data.detectedItems[0]);
+    assert.ok("confidence" in body.data.detectedItems[0]);
+    assert.deepEqual(body.data.totals, {
+      calories: 582,
+      protein: 62.4,
+      carbs: 60,
+      fat: 7.3
+    });
+    assert.equal(body.data.nextStep, "review_and_confirm");
+
+    await fs.rm(path.join(ROOT_DIR, body.data.imagePath), { force: true });
+  });
+
+  it("400 — missing image file", async () => {
+    const formData = new FormData();
+    formData.append("mealDate", "2026-05-07");
+
+    const { status, body } = await multipartApi("/api/ai/analyze-image", formData, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "image");
+  });
+
+  it("400 — invalid image type", async () => {
+    const { status, body } = await multipartApi(
+      "/api/ai/analyze-image",
+      buildImageForm("meal.gif", "image/gif", Buffer.from("not an allowed image")),
+      {
+        "x-user-role": "user",
+        "x-user-id": "1"
+      }
+    );
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "image");
+  });
+
+  it("400 — image over 5 MB", async () => {
+    const oversizedImage = Buffer.alloc((5 * 1024 * 1024) + 1, 1);
+
+    const { status, body } = await multipartApi(
+      "/api/ai/analyze-image",
+      buildImageForm("large.jpg", "image/jpeg", oversizedImage),
+      {
+        "x-user-role": "user",
+        "x-user-id": "1"
+      }
+    );
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "image");
+    assert.equal(body.error.details.maxSizeMb, 5);
+  });
+
+  it("403 — missing role header", async () => {
+    const { status, body } = await multipartApi("/api/ai/analyze-image", buildImageForm());
+
     assert.equal(status, 403);
     assertError(body, "FORBIDDEN");
   });

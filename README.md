@@ -106,3 +106,35 @@ The server supports these Assignment 4 events:
 
 The meal/dashboard events include `userId` so the frontend can ignore events for
 other users.
+
+## assignment 4 ai image analysis
+
+The backend exposes the Assignment 4 image-analysis endpoint at:
+
+```text
+POST /api/ai/analyze-image
+```
+
+Send `multipart/form-data` with required file field `image` and optional
+`mealDate`. The backend accepts `jpg`, `jpeg`, `png`, and `webp` files up to
+5 MB, stores accepted images in `uploads/`, and returns the standard API
+envelope.
+
+AI environment variables:
+
+- `AI_MODE=mock`
+- `AI_PROVIDER=gemini`
+- `GEMINI_API_KEY=`
+- `GEMINI_IMAGE_MODEL=gemini-3.5-flash`
+
+`GEMINI_IMAGE_MODEL` is configurable. The default is `gemini-3.5-flash`,
+which was tested with Gemini `generateContent`, but if Google changes model
+availability or your API key does not support that model, set
+`GEMINI_IMAGE_MODEL` to another Gemini model that supports image input.
+
+With `AI_MODE=mock` or no Gemini key, the endpoint returns a deterministic mock
+analysis. With a Gemini key and non-mock mode, it calls:
+
+```text
+https://generativelanguage.googleapis.com/v1beta/models/<GEMINI_IMAGE_MODEL>:generateContent
+```
