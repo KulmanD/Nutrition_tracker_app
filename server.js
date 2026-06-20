@@ -1,4 +1,5 @@
 const express = require("express"); //bring in express
+const http = require("http"); //bring in http server support
 
 const usersRoutes = require("./routes/usersRoutes"); //grab user routes
 const mealsRoutes = require("./routes/mealsRoutes"); //grab meal routes
@@ -11,9 +12,11 @@ const cors = require("./middleware/cors"); //allow frontend browser requests
 const logger = require("./middleware/logger"); //pull in logger
 const notFound = require("./middleware/notFound"); //pull in not found handler
 const errorHandler = require("./middleware/errorHandler"); //pull in error handler
+const { initializeSocketServer } = require("./realtime/socketServer"); //wire realtime events
 
 const app = express(); //start the app up
 const port = 3000; //set our port to 3000
+const server = http.createServer(app); //use one server for REST and Socket.IO
 
 //log every request
 app.use(cors); //allow the React app to call this API
@@ -49,6 +52,8 @@ app.use(notFound); //catch missing pages
 //unexpected error handler
 app.use(errorHandler); //catch bad errors
 
-app.listen(port, () => { //start listening
+initializeSocketServer(server); //start realtime socket support
+
+server.listen(port, () => { //start listening
   console.log(`server running at http://localhost:${port}`); //tell us it's running
 });

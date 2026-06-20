@@ -2,6 +2,7 @@ const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { spawn, spawnSync } = require("node:child_process");
 const path = require("node:path");
+const { io } = require("socket.io-client");
 
 const BASE = "http://localhost:3000";
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -60,6 +61,48 @@ function runSetupCommand(command, args) {
   if (result.status !== 0) {
     throw new Error(`${command} ${args.join(" ")} failed\n${result.stdout}\n${result.stderr}`);
   }
+}
+
+function connectSocket() {
+  return new Promise((resolve, reject) => {
+    const socket = io(BASE, {
+      transports: ["websocket"],
+      reconnection: false,
+      timeout: 2000
+    });
+
+    const timer = setTimeout(() => {
+      socket.close();
+      reject(new Error("Socket.IO connection timed out"));
+    }, 2500);
+
+    socket.once("connect", () => {
+      clearTimeout(timer);
+      resolve(socket);
+    });
+
+    socket.once("connect_error", (error) => {
+      clearTimeout(timer);
+      socket.close();
+      reject(error);
+    });
+  });
+}
+
+function waitForSocketEvent(socket, eventName) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      socket.off(eventName, handler);
+      reject(new Error(`Timed out waiting for ${eventName}`));
+    }, 2500);
+
+    function handler(payload) {
+      clearTimeout(timer);
+      resolve(payload);
+    }
+
+    socket.once(eventName, handler);
+  });
 }
 
 // ── Lifecycle ────────────────────────────────────────────
@@ -617,6 +660,74 @@ describe("GET /dashboard/today", () => {
     assert.equal(body.error.code, "USER_NOT_FOUND");
   });
 
+});
+
+// ═════════════════════════════════════════════════════════
+//  SOCKET.IO REALTIME EVENTS
+// ═════════════════════════════════════════════════════════
+
+describe("Socket.IO realtime events", () => {
+  it("broadcasts presence:updated after presence:join", async () => {
+    const socket = await connectSocket();
+
+    try {
+      const updated = waitForSocketEvent(socket, "presence:updated");
+      socket.emit("presence:join", {
+        userId: 1,
+        fullName: "Denis Kulman"
+      });
+
+      const payload = await updated;
+      assert.ok(Array.isArray(payload.onlineUsers));
+      assert.ok(payload.onlineUsers.some((user) => (
+        user.userId === 1 && user.fullName === "Denis Kulman"
+      )));
+    } finally {
+      socket.close();
+    }
+  });
+
+  it("broadcasts meal:created and dashboard:updated when a meal is created", async () => {
+    const socket = await connectSocket();
+
+    try {
+      const mealCreated = waitForSocketEvent(socket, "meal:created");
+      const dashboardUpdated = waitForSocketEvent(socket, "dashboard:updated");
+
+      const { status, body } = await api("POST", "/meals", {
+        userId: 1,
+        mealName: "socket test lunch",
+        mealDate: "2026-05-07",
+        items: [
+          { foodName: "turkey", confirmedPortionGrams: 100, calories: 135, protein: 29, carbs: 0, fat: 1 }
+        ]
+      }, {
+        "x-user-role": "user"
+      });
+
+      assert.equal(status, 201);
+      assertSuccess(body);
+
+      const mealPayload = await mealCreated;
+      assert.equal(mealPayload.mealId, body.data.mealId);
+      assert.equal(mealPayload.userId, 1);
+      assert.equal(mealPayload.mealDate, "2026-05-07");
+      assert.equal(mealPayload.mealName, "socket test lunch");
+      assert.deepEqual(mealPayload.totals, {
+        calories: 135,
+        protein: 29,
+        carbs: 0,
+        fat: 1
+      });
+
+      const dashboardPayload = await dashboardUpdated;
+      assert.equal(dashboardPayload.userId, 1);
+      assert.equal(dashboardPayload.date, "2026-05-07");
+      assert.equal(dashboardPayload.mealId, body.data.mealId);
+    } finally {
+      socket.close();
+    }
+  });
 });
 
 // ═════════════════════════════════════════════════════════

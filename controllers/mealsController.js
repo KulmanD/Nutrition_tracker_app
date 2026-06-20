@@ -1,4 +1,5 @@
 const mealRepository = require("../repositories/mealRepository");
+const { emitDashboardUpdated, emitMealCreated } = require("../realtime/socketServer");
 const { successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
 
@@ -129,6 +130,27 @@ async function createMeal(req, res) {
       userId: Number(req.body.userId)
     });
   }
+
+  const userId = Number(req.body.userId);
+  const totals = mealRepository.calculateTotals(req.body.items);
+
+  emitMealCreated({
+    mealId: created.mealId,
+    userId,
+    mealDate: req.body.mealDate,
+    mealName: req.body.mealName,
+    totals: {
+      calories: totals.totalCalories,
+      protein: totals.totalProtein,
+      carbs: totals.totalCarbs,
+      fat: totals.totalFat
+    }
+  });
+  emitDashboardUpdated({
+    userId,
+    date: req.body.mealDate,
+    mealId: created.mealId
+  });
 
   return successResponse(res, 201, {
     mealId: created.mealId

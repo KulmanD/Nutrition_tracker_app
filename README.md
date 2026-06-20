@@ -88,3 +88,21 @@ Run both:
 ```bash
 npm run db:setup
 ```
+
+## assignment 4 websocket events
+
+Socket.IO runs on the same backend origin as the REST API:
+
+```text
+http://localhost:3000
+```
+
+The server supports these Assignment 4 events:
+
+- `presence:join` from client to server with `{ userId, fullName }`
+- `presence:updated` from server to clients with `{ onlineUsers }`
+- `meal:created` from server to clients after a meal is created
+- `dashboard:updated` from server to clients after a meal changes today's dashboard data
+
+The meal/dashboard events include `userId` so the frontend can ignore events for
+other users.
