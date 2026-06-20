@@ -2,6 +2,7 @@ const mealRepository = require("../repositories/mealRepository");
 const { emitDashboardUpdated, emitMealCreated } = require("../realtime/socketServer");
 const { successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
+const { getLocalDateString } = require("../utils/dateHelper");
 
 function isValidNumericId(id) {
   const parsedId = Number(id);
@@ -76,6 +77,51 @@ function validationError(message, field, value) {
   });
 }
 
+function getCurrentUserId(req) {
+  const userId = Number(req.currentUserId || req.header("x-user-id"));
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new AppError(400, "VALIDATION_ERROR", "Missing or invalid current user id.", {
+      field: "x-user-id"
+    });
+  }
+
+  return userId;
+}
+
+function buildTotalsPayload(items) {
+  const totals = mealRepository.calculateTotals(items);
+
+  return {
+    calories: totals.totalCalories,
+    protein: totals.totalProtein,
+    carbs: totals.totalCarbs,
+    fat: totals.totalFat
+  };
+}
+
+function emitMealSavedEvents(meal) {
+  const totals = {
+    calories: meal.totalCalories,
+    protein: meal.totalProtein,
+    carbs: meal.totalCarbs,
+    fat: meal.totalFat
+  };
+
+  emitMealCreated({
+    mealId: meal.mealId,
+    userId: meal.userId,
+    mealDate: meal.mealDate,
+    mealName: meal.mealName,
+    totals
+  });
+  emitDashboardUpdated({
+    userId: meal.userId,
+    date: meal.mealDate,
+    mealId: meal.mealId
+  });
+}
+
 async function getAllMeals(req, res) {
   const filters = {};
 
@@ -132,19 +178,14 @@ async function createMeal(req, res) {
   }
 
   const userId = Number(req.body.userId);
-  const totals = mealRepository.calculateTotals(req.body.items);
+  const totals = buildTotalsPayload(req.body.items);
 
   emitMealCreated({
     mealId: created.mealId,
     userId,
     mealDate: req.body.mealDate,
     mealName: req.body.mealName,
-    totals: {
-      calories: totals.totalCalories,
-      protein: totals.totalProtein,
-      carbs: totals.totalCarbs,
-      fat: totals.totalFat
-    }
+    totals
   });
   emitDashboardUpdated({
     userId,
@@ -154,6 +195,47 @@ async function createMeal(req, res) {
 
   return successResponse(res, 201, {
     mealId: created.mealId
+  });
+}
+
+async function createMealFromAi(req, res) {
+  if (!req.body.analysisId || typeof req.body.analysisId !== "string" || req.body.analysisId.trim().length === 0) {
+    validationError("Missing required field: analysisId", "analysisId");
+  }
+
+  const userId = getCurrentUserId(req);
+  const mealDate = req.body.mealDate || getLocalDateString();
+  const validation = validateMealBody({
+    ...req.body,
+    userId,
+    mealDate
+  });
+
+  if (!validation.isValid) {
+    throw new AppError(400, "VALIDATION_ERROR", validation.message, {
+      field: validation.field
+    });
+  }
+
+  const meal = await mealRepository.createMealAndReturn({
+    userId,
+    mealName: req.body.mealName,
+    mealDate,
+    imagePath: req.body.imagePath || null,
+    items: req.body.items
+  });
+
+  if (!meal) {
+    throw new AppError(404, "USER_NOT_FOUND", "Cannot create a meal for a non-existent user.", {
+      userId
+    });
+  }
+
+  emitMealSavedEvents(meal);
+
+  return successResponse(res, 201, {
+    mealId: meal.mealId,
+    meal
   });
 }
 
@@ -211,6 +293,7 @@ module.exports = {
   getAllMeals,
   getMealById,
   createMeal,
+  createMealFromAi,
   updateMeal,
   deleteMeal
 };
