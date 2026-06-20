@@ -46,9 +46,10 @@ and the schema files live in root `migrations/`; this is the root-backend
 equivalent of the requested `backend/models/` and `backend/migrations/`
 structure.
 
-The new database foundation is intentionally not wired into the existing
-controllers yet. Current Assignment 3 routes still use the mock in-memory data
-until `REQ-a4-db-02` replaces CRUD/query behavior with the ORM layer.
+The Assignment 4 database layer now backs the main user, meal, settings, auth,
+and dashboard routes. The legacy mock data files are still present in the repo,
+but the active controllers use the ORM repositories for CRUD and dashboard
+queries.
 
 ### database env
 

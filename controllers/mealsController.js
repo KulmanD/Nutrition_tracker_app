@@ -1,374 +1,191 @@
-const { getMeals, setMeals, getNextMealId } = require("../models/mealsData"); //grab data functions
-const { successResponse } = require("../utils/responseHelper"); //grab success helper
-const AppError = require("../utils/AppError"); //grab custom error
+const mealRepository = require("../repositories/mealRepository");
+const { successResponse } = require("../utils/responseHelper");
+const AppError = require("../utils/AppError");
 
-function isValidNumericId(id) { //check if id is a good number
-  const parsedId = Number(id); //make it a number
-  return Number.isInteger(parsedId) && parsedId > 0; //must be positive whole number
+function isValidNumericId(id) {
+  const parsedId = Number(id);
+  return Number.isInteger(parsedId) && parsedId > 0;
 }
 
-function calculateTotals(items) { //calculate the total nutrients
-  let totalCalories = 0; //start counting
-  let totalProtein = 0;
-  let totalCarbs = 0;
-  let totalFat = 0;
-
-  for (let i = 0; i < items.length; i++) { //loop through items
-    totalCalories += Number(items[i].calories) || 0; //add it up
-    totalProtein += Number(items[i].protein) || 0;
-    totalCarbs += Number(items[i].carbs) || 0;
-    totalFat += Number(items[i].fat) || 0;
+function validateMealBody(body) {
+  if (!body.userId) {
+    return { isValid: false, field: "userId", message: "Missing required field: userId" };
   }
 
-  return { //give back the totals
-    totalCalories: Number(totalCalories.toFixed(1)), //round it to 1 decimal
-    totalProtein: Number(totalProtein.toFixed(1)),
-    totalCarbs: Number(totalCarbs.toFixed(1)),
-    totalFat: Number(totalFat.toFixed(1))
-  };
-}
-
-function validateMealBody(body) { //check if meal info is good
-  if (!body.userId) { //if no user
-    return { //send error details
-      isValid: false,
-      field: "userId",
-      message: "Missing required field: userId"
-    };
+  if (!body.mealName) {
+    return { isValid: false, field: "mealName", message: "Missing required field: mealName" };
   }
 
-  if (!body.mealName) { //if no meal name
-    return { //send error details
-      isValid: false,
-      field: "mealName",
-      message: "Missing required field: mealName"
-    };
+  if (!body.mealDate) {
+    return { isValid: false, field: "mealDate", message: "Missing required field: mealDate" };
   }
 
-  if (!body.mealDate) { //if no date
-    return { //send error details
-      isValid: false,
-      field: "mealDate",
-      message: "Missing required field: mealDate"
-    };
+  if (!Array.isArray(body.items)) {
+    return { isValid: false, field: "items", message: "Missing required field: items must be an array" };
   }
 
-  if (!Array.isArray(body.items)) { //if items isn't a list
-    return { //send error details
-      isValid: false,
-      field: "items",
-      message: "Missing required field: items must be an array"
-    };
+  if (body.items.length === 0) {
+    return { isValid: false, field: "items", message: "Meal must include at least one food item" };
   }
 
-  if (body.items.length === 0) { //if no items in list
-    return { //send error details
-      isValid: false,
-      field: "items",
-      message: "Meal must include at least one food item"
-    };
-  }
+  for (let i = 0; i < body.items.length; i++) {
+    const item = body.items[i];
 
-  for (let i = 0; i < body.items.length; i++) { //loop through items
-    const item = body.items[i]; //grab an item
-
-    if (!item.foodName) { //if no food name
-      return { //send error details
-        isValid: false,
-        field: `items[${i}].foodName`,
-        message: "Missing required field: foodName"
-      };
+    if (!item.foodName) {
+      return { isValid: false, field: `items[${i}].foodName`, message: "Missing required field: foodName" };
     }
 
-    if (!item.confirmedPortionGrams) { //if no portion
-      return { //send error details
+    if (!item.confirmedPortionGrams) {
+      return {
         isValid: false,
         field: `items[${i}].confirmedPortionGrams`,
         message: "Missing required field: confirmedPortionGrams"
       };
     }
 
-    const nutrients = ['calories', 'protein', 'carbs', 'fat']; //nutrients we need
+    const nutrients = ["calories", "protein", "carbs", "fat"];
 
-    for (const n of nutrients) { //loop through nutrients
-      if (body.items[i][n] === undefined || body.items[i][n] === null) { //if missing
-        return { //send error details
+    for (const nutrient of nutrients) {
+      if (item[nutrient] === undefined || item[nutrient] === null) {
+        return {
           isValid: false,
-          field: `items[${i}].${n}`,
-          message: `Missing required field: ${n}`
+          field: `items[${i}].${nutrient}`,
+          message: `Missing required field: ${nutrient}`
         };
       }
 
-      const val = Number(body.items[i][n]); //make it a number
-      if (isNaN(val) || val < 0) { //if bad number
-        return { //send error details
+      const value = Number(item[nutrient]);
+      if (Number.isNaN(value) || value < 0) {
+        return {
           isValid: false,
-          field: `items[${i}].${n}`,
-          message: `${n} must be a positive number.`
+          field: `items[${i}].${nutrient}`,
+          message: `${nutrient} must be a positive number.`
         };
       }
     }
-
-
   }
 
-  return { //everything is good!
-    isValid: true
-  };
+  return { isValid: true };
 }
 
-function getAllMeals(req, res) { //get all meals
-  let meals = getMeals(); //grab a list of meals
-
-  if (req.query.userId) { //if asking for a specific user
-    if (!isValidNumericId(req.query.userId)) { //if bad user id
-      throw new AppError(400, "VALIDATION_ERROR", "Invalid userId query parameter.", { //send error
-        field: "userId",
-        value: req.query.userId
-      });
-    }
-
-    const userId = Number(req.query.userId); //make it a number
-    const mealsForUser = []; //prepare list
-
-    for (let i = 0; i < meals.length; i++) { //loop through meals
-      const currentMeal = meals[i]; //grab a meal
-
-      if (currentMeal.userId === userId) { //if it's user's meal
-        mealsForUser.push(currentMeal); //add it
-      }
-    }
-
-    meals = mealsForUser; //save filtered list
-  }
-
-  if (req.query.date) { //if asking for a specific date
-    const mealsForDate = []; //prepare list
-
-    for (let i = 0; i < meals.length; i++) { //loop through meals
-      const currentMeal = meals[i]; //grab a meal
-
-      if (currentMeal.mealDate === req.query.date) { //if it's the right day
-        mealsForDate.push(currentMeal); //add it
-      }
-    }
-
-    meals = mealsForDate; //save the filtered list
-  }
-
-  return successResponse(res, 200, meals); //send it all back
+function validationError(message, field, value) {
+  throw new AppError(400, "VALIDATION_ERROR", message, {
+    field,
+    value
+  });
 }
 
-function getMealById(req, res) { //get one meal
-  const id = req.params.id; //get id from url
+async function getAllMeals(req, res) {
+  const filters = {};
 
-  if (!isValidNumericId(id)) { //if bad id
-    throw new AppError(400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
-      field: "id",
-      value: id
+  if (req.query.userId) {
+    if (!isValidNumericId(req.query.userId)) {
+      validationError("Invalid userId query parameter.", "userId", req.query.userId);
+    }
+
+    filters.userId = Number(req.query.userId);
+  }
+
+  if (req.query.date) {
+    filters.date = req.query.date;
+  }
+
+  const meals = await mealRepository.getAllMeals(filters);
+  return successResponse(res, 200, meals);
+}
+
+async function getMealById(req, res) {
+  const id = req.params.id;
+
+  if (!isValidNumericId(id)) {
+    validationError("Invalid meal id.", "id", id);
+  }
+
+  const mealId = Number(id);
+  const meal = await mealRepository.getMealById(mealId);
+
+  if (!meal) {
+    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", {
+      mealId
     });
   }
 
-  const mealId = Number(id); //make it a number
-  const meals = getMeals(); //get all meals
-  let meal; //prepare to hold our meal
-
-  for (let i = 0; i < meals.length; i++) { //loop through meals
-    const currentMeal = meals[i]; //grab a meal
-
-    if (currentMeal.mealId === mealId) { //if we found the wanted meal
-      meal = currentMeal; //save it
-      break; //stop looking
-    }
-  }
-
-  if (!meal) { //if we didn't find the wanted meal
-    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
-      mealId: mealId
-    });
-  }
-
-  return successResponse(res, 200, meal); //send it back
+  return successResponse(res, 200, meal);
 }
 
-function createMeal(req, res) { //add a new meal
-  const validation = validateMealBody(req.body); //check if data is good
+async function createMeal(req, res) {
+  const validation = validateMealBody(req.body);
 
-  if (!validation.isValid) { //if bad data
-    throw new AppError(400, "VALIDATION_ERROR", validation.message, { //send error
+  if (!validation.isValid) {
+    throw new AppError(400, "VALIDATION_ERROR", validation.message, {
       field: validation.field
     });
   }
 
-  const now = new Date().toISOString(); //get current time
-  const totals = calculateTotals(req.body.items); //do the math
-  const mealItems = []; //prepare our list of items
+  const created = await mealRepository.createMeal(req.body);
 
-  for (let i = 0; i < req.body.items.length; i++) { //loop through their items
-    const item = req.body.items[i]; //grab this item
-
-    mealItems.push({ //add it to our new list
-      itemId: i + 1, //give it an id
-      foodName: item.foodName, //its name
-      confirmedPortionGrams: Number(item.confirmedPortionGrams), //its weight
-      calories: Number(item.calories) || 0, //its calories
-      protein: Number(item.protein) || 0, //its protein
-      carbs: Number(item.carbs) || 0, //its carbs
-      fat: Number(item.fat) || 0 //its fat
+  if (!created) {
+    throw new AppError(404, "USER_NOT_FOUND", "Cannot create a meal for a non-existent user.", {
+      userId: Number(req.body.userId)
     });
   }
 
-  const newMeal = { //build the whole meal
-    mealId: getNextMealId(), //give it an id
-    userId: Number(req.body.userId), //whose meal is this
-    mealName: req.body.mealName, //what's it called
-    mealDate: req.body.mealDate, //when was it
-    imagePath: req.body.imagePath || null, //picture if they have one
-    items: mealItems, //what's in it
-    totalCalories: totals.totalCalories, //total cals
-    totalProtein: totals.totalProtein, //total protein
-    totalCarbs: totals.totalCarbs, //total carbs
-    totalFat: totals.totalFat, //total fat
-    createDate: now, //when added
-    updateDate: now //when updated
-  };
-
-  const meals = getMeals(); //get all meals
-  meals.push(newMeal); //add our new one
-
-  return successResponse(res, 201, { //send back success
-    mealId: newMeal.mealId //tell them the new id
+  return successResponse(res, 201, {
+    mealId: created.mealId
   });
 }
 
-function updateMeal(req, res) { //change a meal
-  const id = req.params.id; //get id from url
+async function updateMeal(req, res) {
+  const id = req.params.id;
 
-  if (!isValidNumericId(id)) { //if bad id
-    throw new AppError(400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
-      field: "id",
-      value: id
-    });
+  if (!isValidNumericId(id)) {
+    validationError("Invalid meal id.", "id", id);
   }
 
-  const validation = validateMealBody(req.body); //check if new data is good
+  const validation = validateMealBody(req.body);
 
-  if (!validation.isValid) { //if bad data
-    throw new AppError(400, "VALIDATION_ERROR", validation.message, { //send error
+  if (!validation.isValid) {
+    throw new AppError(400, "VALIDATION_ERROR", validation.message, {
       field: validation.field
     });
   }
 
-  const mealId = Number(id); //make it a number
-  const meals = getMeals(); //get all meals
-  let mealIndex = -1; //prepare to find where it is
+  const mealId = Number(id);
+  const updated = await mealRepository.updateMeal(mealId, req.body);
 
-  for (let i = 0; i < meals.length; i++) { //loop through meals
-    const currentMeal = meals[i]; //grab a meal
-
-    if (currentMeal.mealId === mealId) { //if we found the wanted meal
-      mealIndex = i; //save where it is
-      break; //stop looking
-    }
-  }
-
-  if (mealIndex === -1) { //if we didn't find it
-    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
-      mealId: mealId
+  if (!updated) {
+    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", {
+      mealId
     });
   }
 
-  const totals = calculateTotals(req.body.items); //do the new math
-  const mealItems = []; //prepare our new list of items
-
-  for (let i = 0; i < req.body.items.length; i++) { //loop through their items
-    const item = req.body.items[i]; //grab this item
-
-    mealItems.push({ //add it
-      itemId: i + 1, //give it an id
-      foodName: item.foodName, //its name
-      confirmedPortionGrams: Number(item.confirmedPortionGrams), //its weight
-      calories: Number(item.calories) || 0, //its cals
-      protein: Number(item.protein) || 0, //its protein
-      carbs: Number(item.carbs) || 0, //its carbs
-      fat: Number(item.fat) || 0 //its fat
-    });
-  }
-
-  const existingMeal = meals[mealIndex]; //get the old meal
-  const updatedMeal = {}; //prepare to update it
-
-  for (const key in existingMeal) { //copy old stuff
-    if (Object.prototype.hasOwnProperty.call(existingMeal, key)) { //make sure it's a real property
-      updatedMeal[key] = existingMeal[key]; //copy it
-    }
-  }
-
-  updatedMeal.userId = Number(req.body.userId); //update user
-  updatedMeal.mealName = req.body.mealName; //update name
-  updatedMeal.mealDate = req.body.mealDate; //update date
-  updatedMeal.imagePath = req.body.imagePath || null; //update picture
-  updatedMeal.items = mealItems; //update items
-  updatedMeal.totalCalories = totals.totalCalories; //update cals
-  updatedMeal.totalProtein = totals.totalProtein; //update protein
-  updatedMeal.totalCarbs = totals.totalCarbs; //update carbs
-  updatedMeal.totalFat = totals.totalFat; //update fat
-  updatedMeal.updateDate = new Date().toISOString(); //update the timestamp
-
-  meals[mealIndex] = updatedMeal; //save it back
-
-  return successResponse(res, 200, { //send back success
-    mealId: mealId //confirm what we updated
+  return successResponse(res, 200, {
+    mealId
   });
 }
 
-function deleteMeal(req, res) { //remove a meal
-  const id = req.params.id; //get id from url
+async function deleteMeal(req, res) {
+  const id = req.params.id;
 
-  if (!isValidNumericId(id)) { //if bad id
-    throw new AppError(400, "VALIDATION_ERROR", "Invalid meal id.", { //send error
-      field: "id",
-      value: id
+  if (!isValidNumericId(id)) {
+    validationError("Invalid meal id.", "id", id);
+  }
+
+  const mealId = Number(id);
+  const deleted = await mealRepository.deleteMeal(mealId);
+
+  if (!deleted) {
+    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", {
+      mealId
     });
   }
 
-  const mealId = Number(id); //make it a number
-  const meals = getMeals(); //get all meals
-  let mealExists = false; //assume we don't have it
-
-  for (let i = 0; i < meals.length; i++) { //loop through meals
-    const currentMeal = meals[i]; //grab this meal
-
-    if (currentMeal.mealId === mealId) { //if found
-      mealExists = true; //remember we found it
-      break; //stop looking
-    }
-  }
-
-  if (!mealExists) { //if we didn't find it
-    throw new AppError(404, "MEAL_NOT_FOUND", "Meal was not found.", { //send error
-      mealId: mealId
-    });
-  }
-
-  const filteredMeals = []; //prepare a new list without it
-
-  for (let i = 0; i < meals.length; i++) { //loop through meals
-    const currentMeal = meals[i]; //grab this meal
-
-    if (currentMeal.mealId !== mealId) { //if it's not the one to delete
-      filteredMeals.push(currentMeal); //keep it
-    }
-  }
-
-  setMeals(filteredMeals); //save the new list
-
-  return successResponse(res, 200, { //send back success
-    mealId: mealId //confirm what we deleted
+  return successResponse(res, 200, {
+    mealId
   });
 }
 
-module.exports = { //share our meal functions
+module.exports = {
   getAllMeals,
   getMealById,
   createMeal,

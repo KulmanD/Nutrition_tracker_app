@@ -1,9 +1,10 @@
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const path = require("node:path");
 
 const BASE = "http://localhost:3000";
+const ROOT_DIR = path.resolve(__dirname, "..");
 let serverProcess;
 
 // ── Helpers ──────────────────────────────────────────────
@@ -50,11 +51,25 @@ async function waitForServer(attempts = 30) {
   throw new Error("Server did not start");
 }
 
+function runSetupCommand(command, args) {
+  const result = spawnSync(command, args, {
+    cwd: ROOT_DIR,
+    encoding: "utf8"
+  });
+
+  if (result.status !== 0) {
+    throw new Error(`${command} ${args.join(" ")} failed\n${result.stdout}\n${result.stderr}`);
+  }
+}
+
 // ── Lifecycle ────────────────────────────────────────────
 
 before(async () => {
+  runSetupCommand("npm", ["run", "db:migrate"]);
+  runSetupCommand("node", ["scripts/dbSeed.js", "--reset"]);
+
   serverProcess = spawn("node", ["server.js"], {
-    cwd: path.resolve(__dirname, ".."),
+    cwd: ROOT_DIR,
     stdio: "pipe"
   });
   serverProcess.stderr.on("data", d => process.stderr.write(d));
@@ -389,6 +404,12 @@ describe("Meals — POST /meals", () => {
     assert.equal(status, 201);
     assertSuccess(body);
     assert.equal(typeof body.data.mealId, "number");
+
+    const created = await api("GET", `/meals/${body.data.mealId}`);
+    assert.equal(created.status, 200);
+    assertSuccess(created.body);
+    assert.equal(created.body.data.mealName, validMealBody.mealName);
+    assert.equal(created.body.data.items[0].foodName, "egg");
   });
 
   it("403 — missing role header", async () => {
@@ -571,6 +592,10 @@ describe("GET /dashboard/today", () => {
     assert.ok("consumed" in body.data);
     assert.ok("remaining" in body.data);
     assert.ok(Array.isArray(body.data.meals));
+    assert.ok(body.data.meals.length > 0);
+    assert.ok(Array.isArray(body.data.meals[0].items));
+    assert.ok(body.data.meals[0].items.length > 0);
+    assert.equal(typeof body.data.meals[0].items[0].foodName, "string");
   });
 
   it("400 — missing userId", async () => {
@@ -592,6 +617,58 @@ describe("GET /dashboard/today", () => {
     assert.equal(body.error.code, "USER_NOT_FOUND");
   });
 
+});
+
+// ═════════════════════════════════════════════════════════
+//  AUTH / CURRENT USER / SETTINGS
+// ═════════════════════════════════════════════════════════
+
+describe("Auth and settings DB-backed flows", () => {
+  it("200 — login uses persisted settings email", async () => {
+    const { status, body } = await api("POST", "/api/auth/login", {
+      email: "denis@example.com",
+      password: "password123"
+    });
+
+    assert.equal(status, 200);
+    assertSuccess(body);
+    assert.equal(body.data.user.userId, 1);
+    assert.equal(body.data.user.email, "denis@example.com");
+  });
+
+  it("200 — current user combines user and settings data", async () => {
+    const { status, body } = await api("GET", "/api/users/me", undefined, {
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 200);
+    assertSuccess(body);
+    assert.equal(body.data.userId, 1);
+    assert.equal(body.data.email, "denis@example.com");
+  });
+
+  it("200 — settings update persists and login accepts the updated email", async () => {
+    const settings = await api("PUT", "/api/settings", {
+      username: "Denis Updated",
+      email: "denis.updated@example.com",
+      theme: "dark"
+    }, {
+      "x-user-id": "1"
+    });
+
+    assert.equal(settings.status, 200);
+    assertSuccess(settings.body);
+    assert.equal(settings.body.data.email, "denis.updated@example.com");
+
+    const login = await api("POST", "/api/auth/login", {
+      email: "denis.updated@example.com",
+      password: "password123"
+    });
+
+    assert.equal(login.status, 200);
+    assertSuccess(login.body);
+    assert.equal(login.body.data.user.email, "denis.updated@example.com");
+  });
 });
 
 // ═════════════════════════════════════════════════════════

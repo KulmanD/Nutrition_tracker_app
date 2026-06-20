@@ -4,6 +4,7 @@ const Admin = require("./Admin");
 const Food = require("./Food");
 const Meal = require("./Meal");
 const MealItem = require("./MealItem");
+const UserSetting = require("./UserSetting");
 
 User.hasOne(Admin, {
   as: "adminProfile",
@@ -54,11 +55,21 @@ MealItem.belongsTo(Food, {
   foreignKey: "foodId"
 });
 
+User.hasOne(UserSetting, {
+  as: "settings",
+  foreignKey: "userId"
+});
+UserSetting.belongsTo(User, {
+  as: "user",
+  foreignKey: "userId"
+});
+
 module.exports = {
   sequelize,
   User,
   Admin,
   Food,
   Meal,
-  MealItem
+  MealItem,
+  UserSetting
 };

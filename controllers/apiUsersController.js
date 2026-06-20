@@ -1,42 +1,42 @@
-const { getUsers } = require("../models/usersData"); //grab users
-const { getSettings } = require("../models/settingsModel"); //grab settings
-const { successResponse } = require("../utils/responseHelper"); //grab success helper
-const AppError = require("../utils/AppError"); //grab custom error
+const userRepository = require("../repositories/userRepository");
+const settingsRepository = require("../repositories/settingsRepository");
+const { successResponse } = require("../utils/responseHelper");
+const AppError = require("../utils/AppError");
 
-function getCurrentUserId(req) { //get current user id
-  const headerUserId = Number(req.header("x-user-id") || 1); //read user id header or use default
+function getCurrentUserId(req) {
+  const headerUserId = Number(req.header("x-user-id") || 1);
 
-  if (!Number.isInteger(headerUserId) || headerUserId <= 0) { //if id is bad
-    throw new AppError(400, "VALIDATION_ERROR", "Invalid current user id.", { //send error
-      field: "x-user-id" //bad header
+  if (!Number.isInteger(headerUserId) || headerUserId <= 0) {
+    throw new AppError(400, "VALIDATION_ERROR", "Invalid current user id.", {
+      field: "x-user-id"
     });
   }
 
-  return headerUserId; //send back good user id
+  return headerUserId;
 }
 
-function getMe(req, res) { //get logged in user
-  const userId = getCurrentUserId(req); //get user id
-  const user = getUsers().find((currentUser) => currentUser.userId === userId); //find user
+async function getMe(req, res) {
+  const userId = getCurrentUserId(req);
+  const user = await userRepository.getUserById(userId);
 
-  if (!user) { //if user is missing
-    throw new AppError(404, "USER_NOT_FOUND", "Current user was not found.", { //send error
-      userId: userId //missing user id
+  if (!user) {
+    throw new AppError(404, "USER_NOT_FOUND", "Current user was not found.", {
+      userId
     });
   }
 
-  const settings = getSettings(userId); //get profile settings
+  const settings = await settingsRepository.getSettings(userId);
 
-  return successResponse(res, 200, { //send user info
-    userId: user.userId, //user id
-    firstName: user.firstName, //first name
-    lastName: user.lastName, //last name
-    fullName: settings.username, //show editable full username
-    email: settings.email, //profile email
-    userRole: user.userRole //user role
+  return successResponse(res, 200, {
+    userId: user.userId,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    fullName: settings.username,
+    email: settings.email,
+    userRole: user.userRole
   });
 }
 
-module.exports = { //share user functions
+module.exports = {
   getMe
 };

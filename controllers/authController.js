@@ -1,92 +1,97 @@
-const { getUsers } = require("../models/usersData"); //grab users
-const { getSettings } = require("../models/settingsModel"); //grab settings
-const { successResponse } = require("../utils/responseHelper"); //grab success helper
-const AppError = require("../utils/AppError"); //grab custom error
+const userRepository = require("../repositories/userRepository");
+const settingsRepository = require("../repositories/settingsRepository");
+const { successResponse } = require("../utils/responseHelper");
+const AppError = require("../utils/AppError");
 
-const demoAccounts = [ //mock login accounts
+const demoAccounts = [
   {
-    email: "denis@example.com", //login email
-    password: "password123", //login password
-    userId: 1 //linked user id
+    email: "denis@example.com",
+    password: "password123",
+    userId: 1
   },
   {
-    email: "yael@example.com", //login email
-    password: "password123", //login password
-    userId: 2 //linked user id
+    email: "yael@example.com",
+    password: "password123",
+    userId: 2
   }
 ];
 
-function isValidEmail(email) { //check if email looks valid
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); //true if email format is ok
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function findDemoAccount(email, password) { //find matching mock account
-  return demoAccounts.find((account) => { //check every mock account
-    if (account.password !== password) { //password still has to match
-      return false;
+async function findDemoAccount(email, password) {
+  for (const account of demoAccounts) {
+    if (account.password !== password) {
+      continue;
     }
 
-    const settings = getSettings(account.userId); //grab the editable profile email
-    return settings.email === email;
-  });
+    const settings = await settingsRepository.getSettings(account.userId);
+
+    if (settings && settings.email === email) {
+      return account;
+    }
+  }
+
+  return null;
 }
 
-function buildUserResponse(user, settings) { //build user data for frontend
-  return { //send only the fields frontend needs
-    userId: user.userId, //user id
-    firstName: user.firstName, //first name
-    lastName: user.lastName, //last name
-    fullName: settings.username, //show editable full username
-    email: settings.email, //profile email
-    userRole: user.userRole //user role
+function buildUserResponse(user, settings) {
+  return {
+    userId: user.userId,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    fullName: settings.username,
+    email: settings.email,
+    userRole: user.userRole
   };
 }
 
-function login(req, res) { //login mock user
-  const email = req.body.email; //get email
-  const password = req.body.password; //get password
+async function login(req, res) {
+  const email = req.body.email;
+  const password = req.body.password;
 
-  if (!email || !isValidEmail(email)) { //if email is missing or bad
-    throw new AppError(400, "VALIDATION_ERROR", "Valid email is required.", { //send error
-      field: "email" //bad field
+  if (!email || !isValidEmail(email)) {
+    throw new AppError(400, "VALIDATION_ERROR", "Valid email is required.", {
+      field: "email"
     });
   }
 
-  if (!password || password.length < 6) { //if password is too short
-    throw new AppError(400, "VALIDATION_ERROR", "Password must be at least 6 characters.", { //send error
-      field: "password" //bad field
+  if (!password || password.length < 6) {
+    throw new AppError(400, "VALIDATION_ERROR", "Password must be at least 6 characters.", {
+      field: "password"
     });
   }
 
-  const account = findDemoAccount(email, password); //look for mock account
+  const account = await findDemoAccount(email, password);
 
-  if (!account) { //if no matching login
-    throw new AppError(401, "LOGIN_FAILED", "Invalid email or password.", {}); //send login error
+  if (!account) {
+    throw new AppError(401, "LOGIN_FAILED", "Invalid email or password.", {});
   }
 
-  const user = getUsers().find((currentUser) => currentUser.userId === account.userId); //find linked user
+  const user = await userRepository.getUserById(account.userId);
 
-  if (!user) { //if linked user is missing
-    throw new AppError(404, "USER_NOT_FOUND", "Login user was not found.", { //send error
-      userId: account.userId //missing user id
+  if (!user) {
+    throw new AppError(404, "USER_NOT_FOUND", "Login user was not found.", {
+      userId: account.userId
     });
   }
 
-  const settings = getSettings(user.userId); //grab user settings
+  const settings = await settingsRepository.getSettings(user.userId);
 
-  return successResponse(res, 200, { //send login success
-    token: "mock-assignment-token", //fake token
-    user: buildUserResponse(user, settings) //user info
+  return successResponse(res, 200, {
+    token: "mock-assignment-token",
+    user: buildUserResponse(user, settings)
   });
 }
 
-function logout(req, res) { //logout mock user
-  return successResponse(res, 200, { //send logout success
-    message: "Logged out successfully." //success message
+function logout(req, res) {
+  return successResponse(res, 200, {
+    message: "Logged out successfully."
   });
 }
 
-module.exports = { //share auth functions
+module.exports = {
   login,
   logout
 };
