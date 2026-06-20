@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AUTH_USER_CHANGE_EVENT } from "../services/api";
 import { getCurrentUser, getLoggedInUser, logout } from "../services/authService";
+import OnlineUsers from "./OnlineUsers";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ function Navbar() {
       </nav>
 
       <div className="user-menu">
+        <OnlineUsers />
         <span className="user-name">{user ? user.fullName || user.firstName : "User"}</span>
         <button type="button" className="secondary-button small-button" onClick={handleLogout}>
           Logout
