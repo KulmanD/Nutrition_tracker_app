@@ -626,3 +626,13 @@ select:focus {
     flex-direction: column;
   }
 }
+
+.image-preview {
+  display: block;
+  grid-column: 1 / -1;
+  max-width: 260px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-top: 4px;
+}
