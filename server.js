@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes"); //grab frontend auth routes
 const apiUsersRoutes = require("./routes/apiUsersRoutes"); //grab current user route
 const settingsRoutes = require("./routes/settingsRoutes"); //grab settings routes
 const aiRoutes = require("./routes/aiRoutes"); //grab ai upload routes
+const apiMealsRoutes = require("./routes/apiMealsRoutes"); //grab ai meal save routes
 
 const cors = require("./middleware/cors"); //allow frontend browser requests
 const logger = require("./middleware/logger"); //pull in logger
@@ -33,7 +34,7 @@ app.get("/", (req, res) => { //main entry point
     data: { //the actual info
       message: "nutrition tracker backend api is running",
       baseUrl: "http://localhost:3000", //where we are
-      endpoints: ["/users", "/meals", "/meals/analyze-image", "/api/ai/analyze-image", "/dashboard/today"] //what we can do
+      endpoints: ["/users", "/meals", "/meals/analyze-image", "/api/ai/analyze-image", "/api/meals/from-ai", "/dashboard/today"] //what we can do
     },
     error: null //no errors here
   });
@@ -44,6 +45,7 @@ app.use("/api/auth", authRoutes); //hook up login/logout endpoints
 app.use("/api/users", apiUsersRoutes); //hook up current user endpoint
 app.use("/api/settings", settingsRoutes); //hook up settings endpoints
 app.use("/api/ai", aiRoutes); //hook up ai image analysis endpoints
+app.use("/api/meals", apiMealsRoutes); //hook up ai reviewed meal save endpoint
 app.use("/users", usersRoutes); //hook up user endpoints
 app.use("/meals", mealsRoutes); //hook up meal endpoints
 app.use("/dashboard", dashboardRoutes); //hook up dashboard endpoints

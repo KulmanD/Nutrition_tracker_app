@@ -4,6 +4,7 @@ const fs = require("node:fs/promises");
 const { spawn, spawnSync } = require("node:child_process");
 const path = require("node:path");
 const { io } = require("socket.io-client");
+const { getLocalDateString } = require("../utils/dateHelper");
 
 const BASE = "http://localhost:3000";
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -145,6 +146,18 @@ const validMealBody = {
   mealDate: "2026-05-07",
   items: [
     { foodName: "egg", confirmedPortionGrams: 60, calories: 78, protein: 6, carbs: 1, fat: 5 }
+  ]
+};
+
+const validAiMealBody = {
+  analysisId: "mock-analysis-1",
+  mealName: "AI reviewed lunch",
+  mealDate: "2026-05-07",
+  imagePath: "uploads/mock-meal.jpg",
+  userId: 999,
+  items: [
+    { foodName: "chicken breast", confirmedPortionGrams: 180, calories: 297, protein: 55.8, carbs: 0, fat: 6.5 },
+    { foodName: "white rice", confirmedPortionGrams: 200, calories: 260, protein: 5.4, carbs: 56, fat: 0.6 }
   ]
 };
 
@@ -730,6 +743,175 @@ describe("POST /api/ai/analyze-image", () => {
 
     assert.equal(status, 403);
     assertError(body, "FORBIDDEN");
+  });
+});
+
+// ═════════════════════════════════════════════════════════
+//  SAVE REVIEWED AI MEAL
+// ═════════════════════════════════════════════════════════
+
+describe("POST /api/meals/from-ai", () => {
+  it("201 — saves reviewed AI meal, ignores body userId, and returns full saved meal", async () => {
+    const { status, body } = await api("POST", "/api/meals/from-ai", validAiMealBody, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 201);
+    assertSuccess(body);
+    assert.equal(typeof body.data.mealId, "number");
+    assert.equal(body.data.meal.mealId, body.data.mealId);
+    assert.equal(body.data.meal.userId, 1);
+    assert.equal(body.data.meal.mealName, validAiMealBody.mealName);
+    assert.equal(body.data.meal.mealDate, validAiMealBody.mealDate);
+    assert.equal(body.data.meal.imagePath, validAiMealBody.imagePath);
+    assert.equal(body.data.meal.totalCalories, 557);
+    assert.equal(body.data.meal.totalProtein, 61.2);
+    assert.equal(body.data.meal.totalCarbs, 56);
+    assert.equal(body.data.meal.totalFat, 7.1);
+    assert.ok(Array.isArray(body.data.meal.items));
+    assert.equal(body.data.meal.items.length, 2);
+
+    const created = await api("GET", `/meals/${body.data.mealId}`);
+    assert.equal(created.status, 200);
+    assertSuccess(created.body);
+    assert.equal(created.body.data.userId, 1);
+    assert.equal(created.body.data.imagePath, validAiMealBody.imagePath);
+    assert.equal(created.body.data.items[0].foodName, "chicken breast");
+  });
+
+  it("201 — defaults missing mealDate to local today", async () => {
+    const { mealDate, ...withoutDate } = validAiMealBody;
+    const { status, body } = await api("POST", "/api/meals/from-ai", {
+      ...withoutDate,
+      mealName: "AI reviewed today meal"
+    }, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 201);
+    assertSuccess(body);
+    assert.equal(body.data.meal.mealDate, getLocalDateString());
+  });
+
+  it("400 — missing x-user-id", async () => {
+    const { status, body } = await api("POST", "/api/meals/from-ai", validAiMealBody, {
+      "x-user-role": "user"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "x-user-id");
+  });
+
+  it("400 — invalid x-user-id", async () => {
+    const { status, body } = await api("POST", "/api/meals/from-ai", validAiMealBody, {
+      "x-user-role": "user",
+      "x-user-id": "abc"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "x-user-id");
+  });
+
+  it("400 — missing analysisId", async () => {
+    const { analysisId, ...withoutAnalysisId } = validAiMealBody;
+    const { status, body } = await api("POST", "/api/meals/from-ai", withoutAnalysisId, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "analysisId");
+  });
+
+  it("400 — missing mealName", async () => {
+    const { mealName, ...withoutMealName } = validAiMealBody;
+    const { status, body } = await api("POST", "/api/meals/from-ai", withoutMealName, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "mealName");
+  });
+
+  it("400 — missing items", async () => {
+    const { items, ...withoutItems } = validAiMealBody;
+    const { status, body } = await api("POST", "/api/meals/from-ai", withoutItems, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "items");
+  });
+
+  it("400 — invalid items", async () => {
+    const { status, body } = await api("POST", "/api/meals/from-ai", {
+      ...validAiMealBody,
+      items: "not-array"
+    }, {
+      "x-user-role": "user",
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+    assert.equal(body.error.details.field, "items");
+  });
+
+  it("403 — missing role header", async () => {
+    const { status, body } = await api("POST", "/api/meals/from-ai", validAiMealBody, {
+      "x-user-id": "1"
+    });
+
+    assert.equal(status, 403);
+    assertError(body, "FORBIDDEN");
+  });
+
+  it("broadcasts meal:created and dashboard:updated after saving reviewed AI meal", async () => {
+    const socket = await connectSocket();
+
+    try {
+      const mealCreated = waitForSocketEvent(socket, "meal:created");
+      const dashboardUpdated = waitForSocketEvent(socket, "dashboard:updated");
+
+      const { status, body } = await api("POST", "/api/meals/from-ai", {
+        ...validAiMealBody,
+        mealName: "AI socket lunch"
+      }, {
+        "x-user-role": "user",
+        "x-user-id": "1"
+      });
+
+      assert.equal(status, 201);
+      assertSuccess(body);
+
+      const mealPayload = await mealCreated;
+      assert.equal(mealPayload.mealId, body.data.mealId);
+      assert.equal(mealPayload.userId, 1);
+      assert.equal(mealPayload.mealDate, validAiMealBody.mealDate);
+      assert.equal(mealPayload.mealName, "AI socket lunch");
+      assert.deepEqual(mealPayload.totals, {
+        calories: 557,
+        protein: 61.2,
+        carbs: 56,
+        fat: 7.1
+      });
+
+      const dashboardPayload = await dashboardUpdated;
+      assert.equal(dashboardPayload.userId, 1);
+      assert.equal(dashboardPayload.date, validAiMealBody.mealDate);
+      assert.equal(dashboardPayload.mealId, body.data.mealId);
+    } finally {
+      socket.close();
+    }
   });
 });
 

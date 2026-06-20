@@ -124,6 +124,16 @@ async function createMeal(data) {
   });
 }
 
+async function createMealAndReturn(data) {
+  const created = await createMeal(data);
+
+  if (!created) {
+    return null;
+  }
+
+  return getMealById(created.mealId);
+}
+
 async function updateMeal(mealId, data) {
   const meal = await Meal.findByPk(mealId);
 
@@ -171,6 +181,7 @@ module.exports = {
   getAllMeals,
   getMealById,
   createMeal,
+  createMealAndReturn,
   updateMeal,
   deleteMeal
 };
