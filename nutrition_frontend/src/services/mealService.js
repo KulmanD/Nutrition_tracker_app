@@ -25,6 +25,16 @@ export async function createMeal(meal) {
   });
 }
 
+export async function updateMeal(mealId, meal) {
+  return request(`/meals/${mealId}`, {
+    method: "PUT",
+    body: {
+      ...meal,
+      userId: getCurrentUserId()
+    }
+  });
+}
+
 export async function deleteMeal(mealId) {
   return request(`/meals/${mealId}`, {
     method: "DELETE",
