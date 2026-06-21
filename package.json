@@ -8,7 +8,10 @@
     "dev": "node server.js",
     "db:migrate": "node scripts/dbMigrate.js",
     "db:seed": "node scripts/dbSeed.js",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "test:api": "node --test tests/api.test.js",
+    "smoke:backend": "node scripts/backendSmoke.js",
+    "test:a4": "npm run db:setup && npm run test:api && npm run smoke:backend"
   },
   "keywords": [
     "node",
