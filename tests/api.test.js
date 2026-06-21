@@ -562,6 +562,19 @@ describe("Meals — PUT /meals/:id", () => {
     const { status, body } = await api("PUT", "/meals/1", validMealBody, { "x-user-role": "user" });
     assert.equal(status, 200);
     assertSuccess(body);
+
+    const updated = await api("GET", "/meals/1");
+    assert.equal(updated.status, 200);
+    assertSuccess(updated.body);
+    assert.equal(updated.body.data.mealName, validMealBody.mealName);
+    assert.equal(updated.body.data.mealDate, validMealBody.mealDate);
+    assert.equal(updated.body.data.totalCalories, 78);
+    assert.equal(updated.body.data.totalProtein, 6);
+    assert.equal(updated.body.data.totalCarbs, 1);
+    assert.equal(updated.body.data.totalFat, 5);
+    assert.equal(updated.body.data.items.length, 1);
+    assert.equal(updated.body.data.items[0].foodName, "egg");
+    assert.equal(updated.body.data.items[0].confirmedPortionGrams, 60);
   });
 
   it("404 — non-existent id", async () => {
@@ -778,6 +791,15 @@ describe("POST /api/meals/from-ai", () => {
     assert.equal(created.body.data.userId, 1);
     assert.equal(created.body.data.imagePath, validAiMealBody.imagePath);
     assert.equal(created.body.data.items[0].foodName, "chicken breast");
+
+    const dashboard = await api("GET", `/dashboard/today?userId=1&date=${validAiMealBody.mealDate}`);
+    assert.equal(dashboard.status, 200);
+    assertSuccess(dashboard.body);
+    const dashboardMeal = dashboard.body.data.meals.find((meal) => meal.mealId === body.data.mealId);
+    assert.ok(dashboardMeal, "saved AI meal should appear in dashboard results");
+    assert.equal(dashboardMeal.mealName, validAiMealBody.mealName);
+    assert.equal(dashboardMeal.items.length, 2);
+    assert.ok(dashboardMeal.items.some((item) => item.foodName === "white rice"));
   });
 
   it("201 — defaults missing mealDate to local today", async () => {
@@ -932,6 +954,46 @@ describe("GET /dashboard/today", () => {
     assert.ok(Array.isArray(body.data.meals[0].items));
     assert.ok(body.data.meals[0].items.length > 0);
     assert.equal(typeof body.data.meals[0].items[0].foodName, "string");
+  });
+
+  it("200 — includes ORM-joined meal items and calculated dashboard totals", async () => {
+    const mealDate = "2026-05-08";
+    const created = await api("POST", "/meals", {
+      userId: 1,
+      mealName: "dashboard join proof meal",
+      mealDate,
+      items: [
+        { foodName: "salmon", confirmedPortionGrams: 150, calories: 300, protein: 34, carbs: 0, fat: 18 },
+        { foodName: "broccoli", confirmedPortionGrams: 100, calories: 35, protein: 2.4, carbs: 7, fat: 0.4 }
+      ]
+    }, {
+      "x-user-role": "user"
+    });
+    assert.equal(created.status, 201);
+    assertSuccess(created.body);
+
+    const { status, body } = await api("GET", `/dashboard/today?userId=1&date=${mealDate}`);
+    assert.equal(status, 200);
+    assertSuccess(body);
+    assert.deepEqual(body.data.consumed, {
+      calories: 335,
+      protein: 36.4,
+      carbs: 7,
+      fat: 18.4
+    });
+    assert.deepEqual(body.data.remaining, {
+      calories: 1865,
+      protein: 113.6,
+      carbs: 243,
+      fat: 51.6
+    });
+
+    const dashboardMeal = body.data.meals.find((meal) => meal.mealId === created.body.data.mealId);
+    assert.ok(dashboardMeal, "created meal should be returned by dashboard query");
+    assert.equal(dashboardMeal.mealName, "dashboard join proof meal");
+    assert.equal(dashboardMeal.items.length, 2);
+    assert.deepEqual(dashboardMeal.items.map((item) => item.foodName), ["salmon", "broccoli"]);
+    assert.deepEqual(dashboardMeal.items.map((item) => item.confirmedPortionGrams), [150, 100]);
   });
 
   it("200 — defaults missing date to local today", async () => {
