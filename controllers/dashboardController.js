@@ -1,6 +1,7 @@
 const dashboardRepository = require("../repositories/dashboardRepository");
 const { successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
+const { getLocalDateString } = require("../utils/dateHelper");
 
 function isValidNumericId(id) {
   const parsedId = Number(id);
@@ -9,7 +10,7 @@ function isValidNumericId(id) {
 
 async function getTodayDashboard(req, res) {
   const userId = req.query.userId;
-  const date = req.query.date || "2026-05-06";
+  const date = req.query.date || getLocalDateString();
 
   if (!userId) {
     throw new AppError(400, "VALIDATION_ERROR", "Missing required query parameter: userId", {

@@ -934,6 +934,14 @@ describe("GET /dashboard/today", () => {
     assert.equal(typeof body.data.meals[0].items[0].foodName, "string");
   });
 
+  it("200 — defaults missing date to local today", async () => {
+    const { status, body } = await api("GET", "/dashboard/today?userId=1");
+    assert.equal(status, 200);
+    assertSuccess(body);
+    assert.equal(body.data.date, getLocalDateString());
+    assert.ok(body.data.meals.some((meal) => meal.mealName === "seeded today chicken rice"));
+  });
+
   it("400 — missing userId", async () => {
     const { status, body } = await api("GET", "/dashboard/today");
     assert.equal(status, 400);
