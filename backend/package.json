@@ -11,8 +11,9 @@
     "db:setup": "npm run db:migrate && npm run db:seed",
     "test:api": "node --test src/tests/api.test.js",
     "test:coverage": "node --test src/tests/a4Coverage.test.js",
+    "test:regression": "node --test src/tests/regression.test.js",
     "smoke:backend": "node src/scripts/backendSmoke.js",
-    "test:a4": "npm run db:setup && npm run test:api && npm run test:coverage && npm run smoke:backend"
+    "test:a4": "npm run db:setup && npm run test:api && npm run test:coverage && npm run test:regression && npm run smoke:backend"
   },
   "keywords": [
     "node",
