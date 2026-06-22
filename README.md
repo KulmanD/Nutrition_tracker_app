@@ -1,70 +1,78 @@
 # Nutrition Tracker
 
 A full stack web application for documenting meals and tracking daily nutrition.
-A user can add a meal by hand or by uploading a photo of the meal. When a photo is
-uploaded, the backend runs an AI image-analysis step that detects the foods and
-estimates their nutrition. The user reviews and edits the detected items and then
-saves the meal. The dashboard shows the day's totals and updates live over
-WebSockets whenever a meal is saved.
+Users can add meals manually or upload a meal photo. The backend analyzes the
+photo, estimates the food items and nutrition values, and lets the user review
+the result before saving it. The dashboard shows daily totals and updates live
+with Socket.IO when meals change.
 
-## Tech stack
+## Tech Stack
 
-- Frontend: React, React Router, Fetch API, Socket.IO client.
-- Backend: Node.js, Express, Socket.IO.
-- Database: MySQL accessed through the Sequelize ORM.
-- AI: image-based food and nutrition analysis through the backend.
+React, React Router, Fetch API and Socket.IO client are used in the frontend.
+
+Node.js, Express and Socket.IO are used in the backend.
+
+MySQL is used as the database, with Sequelize ORM models.
+
+Gemini is used for image based food analysis when an API key is configured.
+Without a key, the backend returns deterministic mock data so the upload flow can
+still be tested.
 
 ## Ports
 
-- backend and Socket.IO: http://localhost:3000
-- frontend: http://localhost:5173
+Backend API and Socket.IO: http://localhost:3000
 
-## Project structure
+Frontend: http://localhost:5173
 
-The backend lives at the repository root and the React app lives in
-`nutrition_frontend/`. This is the root-backend equivalent of the assignment's
-`backend/` and `frontend/` layout: the ORM models live in `models/orm/` and the
-schema files live in the root `migrations/` folder, which correspond to the
-requested `backend/models/` and `backend/migrations/`.
+## Project Structure
 
 ```text
 Nutrition_tracker_app/
-  server.js                 backend entry, REST and Socket.IO on port 3000
-  routes/                   Express routers (auth, users, settings, meals, ai, dashboard)
-  controllers/              request handlers
-  repositories/             database access used by the controllers
-  models/orm/               Sequelize models (User, Admin, Food, Meal, MealItem, UserSetting)
-  migrations/               SQL schema files
-  scripts/                  database migrate and seed scripts
-  realtime/                 Socket.IO server setup
-  services/                 AI image-analysis service
-  middleware/               cors, logger, authorize, error handling
-  utils/                    helpers (response envelope, local date helper)
-  uploads/                  uploaded meal images (git ignored)
-  docs/                     documentation, API contract, Postman collection, screenshots
-  nutrition_frontend/       React application (src/components, src/pages, src/services)
+  frontend/
+    src/                    React source code
+    public/                 frontend public files
+    package.json
+    .env.example
+  backend/
+    src/                    Node.js and Express source code
+    models/                 Sequelize ORM models
+    migrations/             SQL schema files
+    package.json
+    .env.example
+  docs/
+    API_CONTRACT.md
+  postman/
+    NutritionTracker_A4.postman_collection.json
+  screenshots/
+    api/
+    frontend/
+  README.md
+  .env.example
 ```
 
-## Prerequisites
+## Requirements
 
-- Node.js with npm
-- a local MySQL server
+Node.js with npm is required.
 
-On macOS, MySQL can be installed and started with Homebrew:
+MySQL server is required.
+
+On macOS with Homebrew:
 
 ```bash
 brew install mysql
 brew services start mysql
 ```
 
-## Installation and running
+On Windows, install MySQL Community Server from the official MySQL website.
+During installation, include MySQL Server and MySQL Workbench. Keep the MySQL
+username and password because they are needed in `backend/.env`.
 
-### Backend
+## Backend Setup
 
-From the project root, install dependencies, create the `.env` file, set up the
-database, and start the server:
+Open a terminal from the project root:
 
 ```bash
+cd backend
 npm install
 cp .env.example .env
 npm run db:setup
@@ -77,101 +85,125 @@ The server should print:
 server running at http://localhost:3000
 ```
 
-### Frontend
+The default database user is `root` and the default password is empty. The
+example file starts with `DB_PASSWORD=` for that reason.
 
-In a second terminal:
+If `npm run db:setup` shows `Access denied`, the local MySQL installation
+probably uses a root password. Check the local MySQL password in MySQL Workbench
+or with the MySQL terminal client. Then edit `backend/.env`, put the password in
+`DB_PASSWORD`, and run `npm run db:setup` again.
+
+## Frontend Setup
+
+Open a second terminal from the project root:
 
 ```bash
-cd nutrition_frontend
+cd frontend
 npm install
+cp .env.example .env
 npm start
 ```
 
-The frontend runs on http://localhost:5173 and calls the backend on port 3000.
+Then open http://localhost:5173 in the browser.
 
-## Environment variables
+## Environment Files
 
-### Backend
+The submitted project includes example environment files only. The real local
+files are created by copying the examples:
 
-Backend variables are read from `.env` at the repository root. Copy `.env.example`
-to `.env` and update the MySQL credentials.
-
-Required database variables:
-
-- `DB_HOST`
-- `DB_PORT`
-- `DB_NAME`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_LOGGING`
-
-AI variables:
-
-- `AI_MODE=mock`
-- `AI_PROVIDER=gemini`
-- `GEMINI_API_KEY=`
-- `GEMINI_IMAGE_MODEL=gemini-3.5-flash`
-
-`GEMINI_IMAGE_MODEL` is configurable. The default is `gemini-3.5-flash`, which was
-tested with Gemini `generateContent`, but if Google changes model availability or
-your API key does not support that model, set `GEMINI_IMAGE_MODEL` to another
-Gemini model that supports image input.
-
-With `AI_MODE=mock` or no Gemini key, the backend returns a deterministic mock
-analysis. With a Gemini key and a non-mock mode, it calls:
-
-```text
-https://generativelanguage.googleapis.com/v1beta/models/<GEMINI_IMAGE_MODEL>:generateContent
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
-### Frontend
+Backend settings are read from `backend/.env`.
 
-Frontend variables are read from `nutrition_frontend/.env`. Copy
-`nutrition_frontend/.env.example` to `nutrition_frontend/.env`. Create React App
-only exposes variables that start with `REACT_APP_`, and the dev server must be
-restarted after changing them.
+Frontend settings are read from `frontend/.env`.
 
-- `REACT_APP_API_BASE_URL`: backend base URL, defaults to http://localhost:3000
-- `REACT_APP_USE_MOCKS`: set to `true` to make the frontend AI calls return local
-  fixtures instead of calling the backend, or `false` to use the real backend
+The backend example file includes the database host, port, database name,
+database user, database password, database logging flag, AI mode, AI provider,
+Gemini API key and Gemini model name.
 
-The `.env` files are git ignored and are not committed. Only the `.env.example`
-templates are tracked, and they hold placeholders, not real secrets.
+The frontend example file includes the backend API base URL and the frontend mock
+mode flag.
 
-## Database and ORM
+For real Gemini image analysis, put the key only in local `backend/.env`:
 
-The application uses MySQL through the Sequelize ORM, and data persists across
-server restarts.
+```env
+AI_MODE=real
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_real_gemini_api_key_here
+```
 
-Models in `models/orm/`:
+If `GEMINI_API_KEY` is empty, the backend uses mock analysis data.
 
-- `User`
-- `Admin`
-- `Food`
-- `Meal`
-- `MealItem` (junction table between meals and foods)
-- `UserSetting`
+## Demo Login
+
+```text
+denis@example.com / test00
+yael@example.com / test00
+amit@example.com / test00
+```
+
+## Database And ORM
+
+The application stores data in the MySQL database named `nutrition_tracker`.
+
+The Sequelize models are in `backend/models/orm/`.
+
+The SQL schema files are in `backend/migrations/`.
+
+Main tables:
+
+```text
+users
+admins
+foods
+meals
+meal_items
+user_settings
+```
+
+The Settings page saves profile username, email and theme in the
+`user_settings` table. For example, a changed profile email is stored in
+`nutrition_tracker.user_settings.email`.
 
 Relationships:
 
-- one-to-many: a user has many meals, and each meal belongs to a user
-- many-to-many: a meal has many foods and a food belongs to many meals, joined
-  through the `MealItem` junction table
-- one-to-one: a user has one admin profile, and an admin belongs to a user
+1. A user has many meals, and each meal belongs to a user.
+2. A meal has many foods through `meal_items`.
+3. A user has one admin profile when the user role is admin.
+4. A user has one settings row.
 
-Database scripts:
+## Main Features
 
-- `npm run db:migrate` applies the SQL schema files in `migrations/`
-- `npm run db:seed` inserts demo users, an admin profile, foods, and one meal
-  dated with the local current date
-- `npm run db:setup` runs both
+Manual meal create, read, update and delete.
 
-The dashboard reads meals together with their meal items and foods through an ORM
-include, which produces the JOIN used to calculate the daily totals.
+Daily dashboard with nutrition totals.
 
-## API endpoints
+Settings page for profile email, username and theme.
 
-All responses use the standard envelope:
+Image upload for AI meal analysis.
+
+Saving reviewed AI meal results into the database.
+
+Socket.IO presence and live dashboard update events.
+
+## API And Postman
+
+The Postman collection is here:
+
+```text
+postman/NutritionTracker_A4.postman_collection.json
+```
+
+The frontend and backend contract for the AI and WebSocket features is here:
+
+```text
+docs/API_CONTRACT.md
+```
+
+All API responses use this envelope:
 
 ```json
 { "success": true, "data": {}, "error": null }
@@ -181,108 +213,111 @@ All responses use the standard envelope:
 { "success": false, "data": null, "error": { "code": "", "message": "", "details": {} } }
 ```
 
-Authentication and current user:
+Main API routes:
 
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/users/me`
-
-Settings:
-
-- `GET /api/settings`
-- `PUT /api/settings`
-
-Users:
-
-- `GET /users`
-- `GET /users/:id`
-- `POST /users`
-- `PUT /users/:id`
-- `DELETE /users/:id`
-
-Meals:
-
-- `GET /meals` (optional `userId` and `date` query parameters)
-- `GET /meals/:id`
-- `POST /meals`
-- `PUT /meals/:id`
-- `DELETE /meals/:id`
-
-AI:
-
-- `POST /api/ai/analyze-image` (multipart form-data, file field `image`)
-- `POST /api/meals/from-ai` (save a reviewed AI meal)
-
-Dashboard:
-
-- `GET /dashboard/today` (query parameter `userId`, optional `date`)
-
-The frontend and backend contract for the AI and WebSocket features is in
-`docs/API_CONTRACT.md`.
-
-## WebSocket feature
-
-Socket.IO runs on the same backend origin as the REST API
-(http://localhost:3000). It supports these custom events:
-
-- `presence:join` from client to server with `{ userId, fullName }`
-- `presence:updated` from server to clients with `{ onlineUsers }`
-- `meal:created` from server to clients after a meal is created
-- `dashboard:updated` from server to clients after a meal changes today's data
-
-The meal and dashboard events carry `userId`, and the frontend filters by the
-logged-in user. With two browser tabs, adding a meal in one tab updates the other
-tab's dashboard, and two different users (for example a normal window and an
-incognito window) change the online count.
-
-## AI feature
-
-The AI feature is image-based food and nutrition analysis. The user uploads a
-meal photo to `POST /api/ai/analyze-image` as `multipart/form-data` with the
-required file field `image` and an optional `mealDate`. The backend accepts jpg,
-jpeg, png, and webp files up to 5 MB, stores accepted images in `uploads/`, and
-returns the detected foods with estimated grams and nutrition.
-
-The user reviews and edits the detected items, then saves them with
-`POST /api/meals/from-ai`, which stores the meal and its food items, sets the
-owner from the `x-user-id` header, and emits the `meal:created` and
-`dashboard:updated` events. The AI key stays on the backend and is never sent to
-the frontend. When no key is configured, the backend returns a deterministic mock
-analysis so the feature can be demonstrated offline.
-
-## Tests
-
-From the backend folder:
-
-```bash
-node --test tests/api.test.js
+```text
+POST /api/auth/login
+POST /api/auth/logout
+GET /api/users/me
+GET /api/settings
+PUT /api/settings
+GET /users
+GET /users/:id
+POST /users
+PUT /users/:id
+DELETE /users/:id
+GET /meals
+GET /meals/:id
+POST /meals
+PUT /meals/:id
+DELETE /meals/:id
+POST /api/ai/analyze-image
+POST /api/meals/from-ai
+GET /dashboard/today
 ```
 
-From the frontend folder:
+## WebSocket Feature
+
+Socket.IO runs on the same backend server as the REST API. The frontend connects
+after login, sends the logged in user to the server, and receives live presence
+updates.
+
+When a meal is created, the backend emits meal and dashboard update events. The
+frontend uses those events to refresh the correct user dashboard.
+
+To test this feature, open the app in two separate browser sessions, for example
+one regular browser window and one private browser window.
+
+## AI Feature
+
+The AI feature is used from the Meals page. The user uploads a meal image, the
+backend analyzes it, and the frontend shows detected foods for review.
+
+The upload endpoint accepts the image in multipart form data using field name
+`image`. If a Gemini key is configured, the backend calls Gemini. If no key is
+configured, the backend returns mock analysis data.
+
+## Useful Checks
+
+Backend:
 
 ```bash
-cd nutrition_frontend
-CI=true npm test -- --watchAll=false
+cd backend
+npm run test:a4
+```
+
+Frontend:
+
+```bash
+cd frontend
 npm run build
 ```
 
-## Documentation
+## Submission Artifacts
 
-- `docs/API_CONTRACT.md`: the frontend and backend contract for the AI and
-  WebSocket features.
-- `docs/screenshots/`: screenshots of the running application.
-- A demo video is included with the submission.
+Postman collection:
 
-## Known limitations
+```text
+postman/NutritionTracker_A4.postman_collection.json
+```
 
-- The application is configured for local development, with the backend on port
-  3000 and the frontend on port 5173.
-- Authentication is simulated: the active user and role come from the `x-user-id`
-  and `x-user-role` request headers, and login returns a fixed session token.
-- AI analysis uses Gemini when a key is configured. Without a key the backend
-  returns a deterministic mock analysis, so the detected foods are the same for
-  every image.
-- Uploaded meal images are stored on the local server disk under `uploads/`.
-- Dashboard nutrition goals use fixed default values.
-- Newer endpoints are served under the `/api` prefix, while the original users,
-  meals, and dashboard routes are served at the root path.
+Screenshots:
+
+```text
+screenshots/
+```
+
+The screenshots should cover the database connected app, CRUD, ORM
+relationships, WebSocket communication between two clients, AI input and output,
+and database tables or migrations.
+
+API contract:
+
+```text
+docs/API_CONTRACT.md
+```
+
+Demo video should be submitted with the Moodle upload.
+
+The real `.env` files, real API keys, real passwords, `node_modules`, uploaded
+images and frontend build output are not included in the submitted source.
+
+## Known Limitations
+
+The application is configured for local development, with the backend on port
+3000 and the frontend on port 5173.
+
+Authentication is simulated. The active user and role come from request headers
+sent by the frontend, and login returns a fixed session token.
+
+AI analysis uses Gemini when a key is configured. Without a key, the backend
+returns deterministic mock analysis, so the detected foods are the same for
+every image.
+
+Uploaded meal images are stored on the local backend disk under
+`backend/uploads/`.
+
+Dashboard nutrition goals use fixed default values.
+
+Newer endpoints are served under the `/api` prefix, while the original users,
+meals and dashboard routes are served at the root path.
