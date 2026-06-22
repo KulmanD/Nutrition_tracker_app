@@ -97,7 +97,7 @@ function Login() {
             type="password"
             value={values.password}
             onChange={handleChange}
-            placeholder="password123"
+            placeholder="test00"
           />
           {errors.password && <p className="field-error">{errors.password}</p>}
 

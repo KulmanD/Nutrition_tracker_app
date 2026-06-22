@@ -1101,7 +1101,7 @@ describe("Auth and settings DB-backed flows", () => {
   it("200 — login uses persisted settings email", async () => {
     const { status, body } = await api("POST", "/api/auth/login", {
       email: "denis@example.com",
-      password: "password123"
+      password: "test00"
     });
 
     assert.equal(status, 200);
@@ -1136,7 +1136,7 @@ describe("Auth and settings DB-backed flows", () => {
 
     const login = await api("POST", "/api/auth/login", {
       email: "denis.updated@example.com",
-      password: "password123"
+      password: "test00"
     });
 
     assert.equal(login.status, 200);

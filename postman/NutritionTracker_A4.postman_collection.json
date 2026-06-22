@@ -459,7 +459,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"denis@example.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"denis@example.com\",\n  \"password\": \"test00\"\n}"
             },
             "url": {
               "raw": "http://localhost:3000/api/auth/login",
