@@ -1,62 +1,93 @@
 # Nutrition Tracker Frontend
 
-React frontend for the Nutrition Tracker app.
+This folder contains the React frontend for the Nutrition Tracker project.
 
-## Run Locally
+The full project setup is explained in the root `README.md`. Use this file only
+when working directly from the `frontend` folder.
 
-Start the backend first:
+## Run The Frontend
+
+Start the backend first from the project root:
 
 ```bash
-cd ../backend
+cd backend
 npm install
 cp .env.example .env
 npm run db:setup
 npm start
 ```
 
-Then start the frontend:
+Then start the frontend in a second terminal:
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
 cp .env.example .env
 npm start
 ```
 
-- Frontend: http://localhost:5173
-- Backend API base URL: http://localhost:3000
+Open the app here:
+
+```text
+http://localhost:5173
+```
+
+The frontend calls the backend here:
+
+```text
+http://localhost:3000
+```
+
+## Environment
+
+The frontend reads local settings from `frontend/.env`.
+
+The usual values are:
+
+```env
+REACT_APP_API_BASE_URL=http://localhost:3000
+REACT_APP_USE_MOCKS=false
+```
+
+Restart `npm start` after changing this file.
 
 ## Demo Login
 
-- denis@example.com / password123
-- yael@example.com / password123
-- amit@example.com / password123
+```text
+denis@example.com / test00
+yael@example.com / test00
+amit@example.com / test00
+```
 
 ## Pages
 
-- `/login` - login with a demo user.
-- `/dashboard` - daily nutrition totals, recent meals, and live updates.
-- `/meals` - meal history, manual meal creation, AI meal review, and meal CRUD.
-- `/settings` - profile nickname, profile email, and theme settings.
+`/login` is used for demo login.
 
-## Backend Endpoints Used
+`/dashboard` shows daily nutrition totals, recent meals and live updates.
 
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/users/me`
-- `GET /api/settings`
-- `PUT /api/settings`
-- `GET /dashboard/today?userId=<userId>`
-- `GET /meals?userId=<userId>`
-- `POST /meals`
-- `PUT /meals/:id`
-- `DELETE /meals/:id`
-- `POST /api/ai/analyze-image`
-- `POST /api/meals/from-ai`
+`/meals` shows meal history, manual meal CRUD and AI meal review.
 
-## Optional Checks
+`/settings` edits profile username, profile email and theme.
+
+## Backend Routes Used
+
+```text
+POST /api/auth/login
+POST /api/auth/logout
+GET /api/users/me
+GET /api/settings
+PUT /api/settings
+GET /dashboard/today
+GET /meals
+POST /meals
+PUT /meals/:id
+DELETE /meals/:id
+POST /api/ai/analyze-image
+POST /api/meals/from-ai
+```
+
+## Build Check
 
 ```bash
-CI=true npm test -- --watchAll=false
 npm run build
 ```
