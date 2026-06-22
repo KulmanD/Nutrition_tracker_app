@@ -1,0 +1,35 @@
+{
+  "name": "nutrition-backend",
+  "version": "1.0.0",
+  "description": "mock backend API for an AI assisted meal and nutrition tracking web application",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "db:migrate": "node src/scripts/dbMigrate.js",
+    "db:seed": "node src/scripts/dbSeed.js",
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "test:api": "node --test src/tests/api.test.js",
+    "test:coverage": "node --test src/tests/a4Coverage.test.js",
+    "smoke:backend": "node src/scripts/backendSmoke.js",
+    "test:a4": "npm run db:setup && npm run test:api && npm run test:coverage && npm run smoke:backend"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "nutrition",
+    "meals",
+    "mock-api"
+  ],
+  "author": "Denis Kulman and Yael Dorahly",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "multer": "^2.2.0",
+    "mysql2": "^3.22.5",
+    "sequelize": "^6.37.8",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
+  }
+}

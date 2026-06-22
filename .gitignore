@@ -2,5 +2,8 @@ node_modules/
 .env
 .DS_Store
 uploads/
+build/
 .postman/
-postman/
+postman/*
+!postman/
+!postman/NutritionTracker_A4.postman_collection.json
