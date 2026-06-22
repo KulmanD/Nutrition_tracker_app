@@ -140,9 +140,9 @@ If `GEMINI_API_KEY` is empty, the backend uses mock analysis data.
 ## Demo Login
 
 ```text
-denis@example.com / test
-yael@example.com / test
-amit@example.com / test
+denis@example.com / test00
+yael@example.com / test00
+amit@example.com / test00
 ```
 
 ## Database And ORM
