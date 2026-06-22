@@ -67,6 +67,17 @@ npm run db:setup
 npm start
 ```
 
+The default `backend/.env` assumes MySQL user `root` with an empty password. If
+`npm run db:setup` fails with `Access denied`, test your local MySQL login:
+
+```bash
+mysql -u root
+mysql -u root -p
+```
+
+If the second command is the one that works, put that password in
+`backend/.env` as `DB_PASSWORD=your_password`.
+
 The server should print:
 
 ```text
@@ -107,7 +118,9 @@ Frontend scripts:
 Do not commit real `.env` files. Only `.env.example` templates are tracked.
 
 Backend variables are read from `backend/.env`. Copy `backend/.env.example` to
-`backend/.env` and update the MySQL credentials:
+`backend/.env`. The default MySQL password is empty for easier first run on a
+fresh local install. If your MySQL user requires a password, update
+`DB_PASSWORD` after checking the login with `mysql -u root -p`.
 
 - `DB_HOST`
 - `DB_PORT`
@@ -121,7 +134,17 @@ Backend variables are read from `backend/.env`. Copy `backend/.env.example` to
 - `GEMINI_IMAGE_MODEL`
 
 With `AI_MODE=mock` or no Gemini key, image analysis returns deterministic mock
-data. With a Gemini key and non-mock mode, the backend calls:
+data. To use real Gemini analysis, keep `AI_MODE=real` and paste a real key only
+in local `backend/.env`:
+
+```env
+AI_MODE=real
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_real_gemini_api_key_here
+GEMINI_IMAGE_MODEL=gemini-3.5-flash
+```
+
+With a Gemini key and non-mock mode, the backend calls:
 
 ```text
 https://generativelanguage.googleapis.com/v1beta/models/<GEMINI_IMAGE_MODEL>:generateContent
