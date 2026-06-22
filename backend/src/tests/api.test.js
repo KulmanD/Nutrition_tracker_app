@@ -1110,6 +1110,18 @@ describe("Auth and settings DB-backed flows", () => {
     assert.equal(body.data.user.email, "denis@example.com");
   });
 
+  it("200 — amit demo account can log in", async () => {
+    const { status, body } = await api("POST", "/api/auth/login", {
+      email: "amit@example.com",
+      password: "test00"
+    });
+
+    assert.equal(status, 200);
+    assertSuccess(body);
+    assert.equal(body.data.user.userId, 3);
+    assert.equal(body.data.user.email, "amit@example.com");
+  });
+
   it("200 — current user combines user and settings data", async () => {
     const { status, body } = await api("GET", "/api/users/me", undefined, {
       "x-user-id": "1"
