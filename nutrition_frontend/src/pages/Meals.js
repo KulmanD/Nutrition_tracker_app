@@ -12,6 +12,20 @@ function mealDateOnly(value) {
   return String(value || "").slice(0, 10);
 }
 
+function formatPillDate(value) {
+  const parsed = new Date(`${value}T12:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
 function Meals() {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +35,7 @@ function Meals() {
   const [addMode, setAddMode] = useState("manual"); // "manual" | "ai"
   const [formKey, setFormKey] = useState(0);
   const [editingMeal, setEditingMeal] = useState(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
   const [actionError, setActionError] = useState("");
 
@@ -146,13 +161,15 @@ function Meals() {
       <section className="content-block">
         <div className="section-heading">
           <h2>Meals for the day</h2>
+          <button
+            type="button"
+            className="date-pill"
+            onClick={() => setDatePickerOpen(true)}
+            style={{ cursor: "pointer", font: "inherit", fontWeight: 700 }}
+          >
+            {formatPillDate(selectedDate)}
+          </button>
         </div>
-
-        <MealCalendar
-          selectedDate={selectedDate}
-          onSelectDate={handleSelectDate}
-          markedDates={markedDates}
-        />
 
         {error && <p className="alert error-alert">{error}</p>}
         {actionMessage && <p className="alert success-alert">{actionMessage}</p>}
@@ -233,6 +250,19 @@ function Meals() {
           <AiMealForm key={`ai-${formKey}`} onSaved={refreshMeals} />
         )}
       </section>
+
+      {datePickerOpen && (
+        <Modal title="Select a date" onClose={() => setDatePickerOpen(false)}>
+          <MealCalendar
+            selectedDate={selectedDate}
+            onSelectDate={(date) => {
+              handleSelectDate(date);
+              setDatePickerOpen(false);
+            }}
+            markedDates={markedDates}
+          />
+        </Modal>
+      )}
 
       {editingMeal && (
         <Modal title="Edit Meal" onClose={handleCloseEdit}>
