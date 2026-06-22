@@ -85,9 +85,13 @@ The server should print:
 server running at http://localhost:3000
 ```
 
-The default database user is `root` and the default password is empty. If
-`npm run db:setup` shows `Access denied`, edit `backend/.env` and put the local
-MySQL password in `DB_PASSWORD`.
+The default database user is `root` and the default password is empty. The
+example file starts with `DB_PASSWORD=` for that reason.
+
+If `npm run db:setup` shows `Access denied`, the local MySQL installation
+probably uses a root password. Check the local MySQL password in MySQL Workbench
+or with the MySQL terminal client. Then edit `backend/.env`, put the password in
+`DB_PASSWORD`, and run `npm run db:setup` again.
 
 ## Frontend Setup
 
@@ -115,6 +119,13 @@ cp frontend/.env.example frontend/.env
 Backend settings are read from `backend/.env`.
 
 Frontend settings are read from `frontend/.env`.
+
+The backend example file includes the database host, port, database name,
+database user, database password, database logging flag, AI mode, AI provider,
+Gemini API key and Gemini model name.
+
+The frontend example file includes the backend API base URL and the frontend mock
+mode flag.
 
 For real Gemini image analysis, put the key only in local `backend/.env`:
 
@@ -202,6 +213,50 @@ All API responses use this envelope:
 { "success": false, "data": null, "error": { "code": "", "message": "", "details": {} } }
 ```
 
+Main API routes:
+
+```text
+POST /api/auth/login
+POST /api/auth/logout
+GET /api/users/me
+GET /api/settings
+PUT /api/settings
+GET /users
+GET /users/:id
+POST /users
+PUT /users/:id
+DELETE /users/:id
+GET /meals
+GET /meals/:id
+POST /meals
+PUT /meals/:id
+DELETE /meals/:id
+POST /api/ai/analyze-image
+POST /api/meals/from-ai
+GET /dashboard/today
+```
+
+## WebSocket Feature
+
+Socket.IO runs on the same backend server as the REST API. The frontend connects
+after login, sends the logged in user to the server, and receives live presence
+updates.
+
+When a meal is created, the backend emits meal and dashboard update events. The
+frontend uses those events to refresh the correct user dashboard.
+
+To test this feature, open the app in two separate browser sessions, for example
+one regular browser window and one private browser window.
+
+## AI Feature
+
+The AI feature is used from the Meals page. The user uploads a meal image, the
+backend analyzes it, and the frontend shows detected foods for review.
+
+The upload endpoint accepts the image in multipart form data using field name
+`image`. If a Gemini key is configured, the backend calls Gemini. If no key is
+configured, the backend returns mock analysis data.
+
 ## Useful Checks
 
 Backend:
@@ -232,11 +287,17 @@ Screenshots:
 screenshots/
 ```
 
+The screenshots should cover the database connected app, CRUD, ORM
+relationships, WebSocket communication between two clients, AI input and output,
+and database tables or migrations.
+
 API contract:
 
 ```text
 docs/API_CONTRACT.md
 ```
+
+Demo video should be submitted with the Moodle upload.
 
 The real `.env` files, real API keys, real passwords, `node_modules`, uploaded
 images and frontend build output are not included in the submitted source.
