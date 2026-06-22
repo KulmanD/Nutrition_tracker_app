@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 
 function formatDate(dateValue) {
   if (!dateValue) {
@@ -18,23 +18,12 @@ function formatDate(dateValue) {
   });
 }
 
-function MealsTable({
-  meals,
-  onEdit,
-  onDelete,
-  expandable = false,
-  emptyMessage = "No meals found for this user."
-}) {
-  const [expandedMealId, setExpandedMealId] = useState(null);
-  const hasActions = Boolean(onEdit || onDelete);
-  const columnCount = 6 + (hasActions ? 1 : 0);
+function MealsTable({ meals, selectedMealId, onSelectMeal, emptyMessage = "No meals found for this user." }) {
+  const selectable = Boolean(onSelectMeal);
+  const columnCount = (selectable ? 1 : 0) + 6;
 
   if (!meals || meals.length === 0) {
     return <p className="empty-state">{emptyMessage}</p>;
-  }
-
-  function toggleExpanded(mealId) {
-    setExpandedMealId((current) => (current === mealId ? null : mealId));
   }
 
   return (
@@ -42,101 +31,85 @@ function MealsTable({
       <table className="meals-table">
         <thead>
           <tr>
+            {selectable && <th>Select</th>}
             <th>Meal</th>
             <th>Date</th>
             <th>Calories</th>
             <th>Protein</th>
             <th>Carbs</th>
             <th>Fat</th>
-            {hasActions && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {meals.map((meal) => (
-            <Fragment key={meal.mealId}>
-              <tr
-                onClick={expandable ? () => toggleExpanded(meal.mealId) : undefined}
-                style={expandable ? { cursor: "pointer" } : undefined}
-              >
-                <td>{meal.mealName}</td>
-                <td>{formatDate(meal.mealDate)}</td>
-                <td>{meal.totalCalories} kcal</td>
-                <td>{meal.totalProtein} g</td>
-                <td>{meal.totalCarbs} g</td>
-                <td>{meal.totalFat} g</td>
-                {hasActions && (
-                  <td>
-                    <div className="table-actions">
-                      {onEdit && (
-                        <button
-                          type="button"
-                          className="secondary-button small-button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onEdit(meal);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      )}
-                      {onDelete && (
-                        <button
-                          type="button"
-                          className="secondary-button small-button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDelete(meal);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
-              </tr>
+          {meals.map((meal) => {
+            const isSelected = selectedMealId === meal.mealId;
 
-              {expandable && expandedMealId === meal.mealId && (
-                <tr>
-                  <td colSpan={columnCount}>
-                    {meal.items && meal.items.length > 0 ? (
-                      <>
-                        <p className="status-text">Food items in this meal</p>
+            return (
+              <Fragment key={meal.mealId}>
+                <tr
+                  className={isSelected ? "selected-row" : ""}
+                  onClick={selectable ? () => onSelectMeal(meal.mealId) : undefined}
+                  style={selectable ? { cursor: "pointer" } : undefined}
+                >
+                  {selectable && (
+                    <td>
+                      <input
+                        type="radio"
+                        name="selectedMeal"
+                        aria-label={`Select ${meal.mealName}`}
+                        checked={isSelected}
+                        onChange={() => onSelectMeal(meal.mealId)}
+                        onClick={(event) => event.stopPropagation()}
+                      />
+                    </td>
+                  )}
+                  <td>{meal.mealName}</td>
+                  <td>{formatDate(meal.mealDate)}</td>
+                  <td>{meal.totalCalories} kcal</td>
+                  <td>{meal.totalProtein} g</td>
+                  <td>{meal.totalCarbs} g</td>
+                  <td>{meal.totalFat} g</td>
+                </tr>
+
+                {selectable && isSelected && (
+                  <tr>
+                    <td colSpan={columnCount}>
+                      {meal.items && meal.items.length > 0 ? (
                         <div className="table-wrap">
                           <table className="meals-table">
-                          <thead>
-                            <tr>
-                              <th>Food</th>
-                              <th>Portion</th>
-                              <th>Calories</th>
-                              <th>Protein</th>
-                              <th>Carbs</th>
-                              <th>Fat</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {meal.items.map((item, index) => (
-                              <tr key={index}>
-                                <td>{item.foodName}</td>
-                                <td>{item.confirmedPortionGrams} g</td>
-                                <td>{item.calories} kcal</td>
-                                <td>{item.protein} g</td>
-                                <td>{item.carbs} g</td>
-                                <td>{item.fat} g</td>
+                            <thead>
+                              <tr>
+                                <th>Food</th>
+                                <th>Portion</th>
+                                <th>Calories</th>
+                                <th>Protein</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
                               </tr>
-                            ))}
-                          </tbody>
+                            </thead>
+                            <tbody>
+                              {meal.items.map((item, index) => (
+                                <tr key={index}>
+                                  <td>{item.foodName}</td>
+                                  <td>{item.confirmedPortionGrams} g</td>
+                                  <td>{item.calories} kcal</td>
+                                  <td>{item.protein} g</td>
+                                  <td>{item.carbs} g</td>
+                                  <td>{item.fat} g</td>
+                                </tr>
+                              ))}
+                            </tbody>
                           </table>
                         </div>
-                      </>
-                    ) : (
-                      <p className="empty-state">No food items found for this meal.</p>
-                    )}
-                  </td>
-                </tr>
-              )}
-            </Fragment>
-          ))}
+                      ) : (
+                        <p className="empty-state">No food items found for this meal.</p>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>

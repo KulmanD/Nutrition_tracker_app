@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import AiMealForm from "../components/AiMealForm";
+import MealCalendar from "../components/MealCalendar";
 import MealsTable from "../components/MealsTable";
+import Modal from "../components/Modal";
 import SharedMealForm from "../components/SharedMealForm";
 import { createMeal, deleteMeal, getMeals, updateMeal } from "../services/mealService";
 import { getInitialFormValues, mealToFormValues } from "../utils/mealFormHelpers";
@@ -15,9 +17,10 @@ function Meals() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState(todayLocalISO());
+  const [selectedMealId, setSelectedMealId] = useState(null);
   const [addMode, setAddMode] = useState("manual"); // "manual" | "ai"
-  const [editingMeal, setEditingMeal] = useState(null);
   const [formKey, setFormKey] = useState(0);
+  const [editingMeal, setEditingMeal] = useState(null);
   const [actionMessage, setActionMessage] = useState("");
   const [actionError, setActionError] = useState("");
 
@@ -53,37 +56,52 @@ function Meals() {
     };
   }, []);
 
+  const markedDates = new Set(meals.map((meal) => mealDateOnly(meal.mealDate)));
   const mealsForSelectedDate = meals.filter(
     (meal) => mealDateOnly(meal.mealDate) === selectedDate
   );
+  const selectedMeal = meals.find((meal) => meal.mealId === selectedMealId) || null;
 
   function clearActionFeedback() {
     setActionMessage("");
     setActionError("");
   }
 
+  function handleSelectDate(dateString) {
+    setSelectedDate(dateString);
+    setSelectedMealId(null);
+    clearActionFeedback();
+  }
+
+  function handleSelectMeal(mealId) {
+    setSelectedMealId(mealId);
+    clearActionFeedback();
+  }
+
   function handleSelectMode(mode) {
     clearActionFeedback();
     setAddMode(mode);
-    setEditingMeal(null);
     setFormKey((current) => current + 1);
   }
 
-  function handleEditMeal(meal) {
+  function handleEditSelected() {
+    if (!selectedMeal) {
+      return;
+    }
     clearActionFeedback();
-    setEditingMeal(meal);
-    setAddMode("manual");
-    setFormKey((current) => current + 1);
+    setEditingMeal(selectedMeal);
   }
 
-  function handleCancelEdit() {
-    clearActionFeedback();
+  function handleCloseEdit() {
     setEditingMeal(null);
-    setFormKey((current) => current + 1);
   }
 
-  async function handleDeleteMeal(meal) {
-    const confirmed = window.confirm(`Delete "${meal.mealName}"? This cannot be undone.`);
+  async function handleDeleteSelected() {
+    if (!selectedMeal) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete "${selectedMeal.mealName}"? This cannot be undone.`);
     if (!confirmed) {
       return;
     }
@@ -91,11 +109,9 @@ function Meals() {
     clearActionFeedback();
 
     try {
-      await deleteMeal(meal.mealId);
+      await deleteMeal(selectedMeal.mealId);
       await refreshMeals();
-      if (editingMeal && editingMeal.mealId === meal.mealId) {
-        setEditingMeal(null);
-      }
+      setSelectedMealId(null);
       setActionMessage("Meal deleted successfully.");
     } catch (requestError) {
       setActionError(requestError.message);
@@ -110,6 +126,8 @@ function Meals() {
   async function handleUpdateMeal(payload) {
     await updateMeal(editingMeal.mealId, payload);
     await refreshMeals();
+    setEditingMeal(null);
+    setActionMessage("Meal updated successfully.");
   }
 
   if (loading) {
@@ -127,27 +145,48 @@ function Meals() {
 
       <section className="content-block">
         <div className="section-heading">
-          <h2 style={{ whiteSpace: "nowrap" }}>Meals for the day</h2>
-          <input
-            type="date"
-            aria-label="Filter meals by date"
-            value={selectedDate}
-            onChange={(event) => setSelectedDate(event.target.value)}
-          />
+          <h2>Meals for the day</h2>
         </div>
+
+        <MealCalendar
+          selectedDate={selectedDate}
+          onSelectDate={handleSelectDate}
+          markedDates={markedDates}
+        />
 
         {error && <p className="alert error-alert">{error}</p>}
         {actionMessage && <p className="alert success-alert">{actionMessage}</p>}
         {actionError && <p className="alert error-alert">{actionError}</p>}
 
         {!error && (
-          <MealsTable
-            meals={mealsForSelectedDate}
-            onEdit={handleEditMeal}
-            onDelete={handleDeleteMeal}
-            expandable
-            emptyMessage="No meals found for this date."
-          />
+          <>
+            <div className="table-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleEditSelected}
+                disabled={!selectedMealId}
+              >
+                Edit selected meal
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleDeleteSelected}
+                disabled={!selectedMealId}
+              >
+                Delete selected meal
+              </button>
+              {!selectedMealId && <span>Select a meal to edit or delete.</span>}
+            </div>
+
+            <MealsTable
+              meals={mealsForSelectedDate}
+              selectedMealId={selectedMealId}
+              onSelectMeal={handleSelectMeal}
+              emptyMessage="No meals found for this date."
+            />
+          </>
         )}
       </section>
 
@@ -176,29 +215,36 @@ function Meals() {
         {addMode === "manual" ? (
           <>
             <div className="section-heading">
-              <h2>{editingMeal ? "Edit Meal" : "Add Meal"}</h2>
+              <h2>Add Meal</h2>
               <span>Manual entry</span>
             </div>
 
             <SharedMealForm
               key={`manual-${formKey}`}
-              initialValues={editingMeal ? mealToFormValues(editingMeal) : getInitialFormValues()}
-              onSubmit={editingMeal ? handleUpdateMeal : handleCreateMeal}
-              submitLabel={editingMeal ? "Update meal" : "Add meal"}
-              submittingLabel={editingMeal ? "Updating..." : "Adding..."}
-              resetAfterSubmit={!editingMeal}
-              successMessage={
-                editingMeal ? "Meal updated successfully." : "Meal added successfully."
-              }
-              secondaryButton={
-                editingMeal ? { label: "Cancel edit", onClick: handleCancelEdit } : undefined
-              }
+              initialValues={getInitialFormValues()}
+              onSubmit={handleCreateMeal}
+              submitLabel="Add meal"
+              submittingLabel="Adding..."
+              resetAfterSubmit
+              successMessage="Meal added successfully."
             />
           </>
         ) : (
           <AiMealForm key={`ai-${formKey}`} onSaved={refreshMeals} />
         )}
       </section>
+
+      {editingMeal && (
+        <Modal title="Edit Meal" onClose={handleCloseEdit}>
+          <SharedMealForm
+            initialValues={mealToFormValues(editingMeal)}
+            onSubmit={handleUpdateMeal}
+            submitLabel="Update meal"
+            submittingLabel="Updating..."
+            secondaryButton={{ label: "Cancel", onClick: handleCloseEdit }}
+          />
+        </Modal>
+      )}
     </section>
   );
 }
