@@ -6,13 +6,18 @@ const AppError = require("../utils/AppError");
 const demoAccounts = [
   {
     email: "denis@example.com",
-    password: "password123",
+    password: "test00",
     userId: 1
   },
   {
     email: "yael@example.com",
-    password: "password123",
+    password: "test00",
     userId: 2
+  },
+  {
+    email: "amit@example.com",
+    password: "test00",
+    userId: 3
   }
 ];
 
