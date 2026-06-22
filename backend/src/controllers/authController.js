@@ -13,6 +13,11 @@ const demoAccounts = [
     email: "yael@example.com",
     password: "test00",
     userId: 2
+  },
+  {
+    email: "amit@example.com",
+    password: "test00",
+    userId: 3
   }
 ];
 
