@@ -111,8 +111,17 @@ function extractGeminiText(responseBody) {
 
 function parseJsonText(text) {
   const fencedMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const jsonText = fencedMatch ? fencedMatch[1] : text;
-  return JSON.parse(jsonText);
+  let jsonText = fencedMatch ? fencedMatch[1] : text;
+
+  // The model may wrap the JSON object in extra prose (for example a note after
+  // it), so keep only the JSON object from the first "{" to the last "}".
+  const start = jsonText.indexOf("{");
+  const end = jsonText.lastIndexOf("}");
+  if (start !== -1 && end > start) {
+    jsonText = jsonText.slice(start, end + 1);
+  }
+
+  return JSON.parse(jsonText.trim());
 }
 
 async function callGemini(file) {
