@@ -17,8 +17,10 @@ const errorHandler = require("./middleware/errorHandler"); //pull in error handl
 const { initializeSocketServer } = require("./realtime/socketServer"); //wire realtime events
 
 const app = express(); //start the app up
-const port = 3000; //set our port to 3000
+const port = Number(process.env.PORT || 3000); //use Render's assigned port when deployed
 const server = http.createServer(app); //use one server for REST and Socket.IO
+
+app.set("trust proxy", 1); //use the HTTPS protocol forwarded by Render
 
 //log every request
 app.use(cors); //allow the React app to call this API
@@ -33,7 +35,7 @@ app.get("/", (req, res) => { //main entry point
     success: true,
     data: { //the actual info
       message: "nutrition tracker backend api is running",
-      baseUrl: "http://localhost:3000", //where we are
+      baseUrl: `${req.protocol}://${req.get("host")}`, //where we are
       endpoints: ["/users", "/meals", "/meals/analyze-image", "/api/ai/analyze-image", "/api/meals/from-ai", "/dashboard/today"] //what we can do
     },
     error: null //no errors here

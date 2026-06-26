@@ -1,4 +1,5 @@
 const { Server } = require("socket.io");
+const { getAllowedOrigins } = require("../middleware/cors");
 
 let io;
 const onlineSockets = new Map();
@@ -41,7 +42,7 @@ function normalizeJoinedUser(payload) {
 function initializeSocketServer(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: getAllowedOrigins(),
       methods: ["GET", "POST"]
     }
   });
