@@ -4,6 +4,7 @@ import { getLoggedInUser, login, register } from "../services/authService";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const demoPassword = "test00";
+const minimumPasswordLength = 6;
 
 function validateForm(values) {
   const nextErrors = {};
@@ -16,7 +17,7 @@ function validateForm(values) {
 
   if (!values.password) {
     nextErrors.password = "Password is required.";
-  } else if (values.password.length < 6) {
+  } else if (values.password.length < minimumPasswordLength) {
     nextErrors.password = "Password must be at least 6 characters.";
   }
 
@@ -40,6 +41,12 @@ function validateRegisterForm(values) {
     nextErrors.email = "Enter a valid email address.";
   }
 
+  if (!values.password) {
+    nextErrors.password = "Password is required.";
+  } else if (values.password.length < minimumPasswordLength) {
+    nextErrors.password = "Password must be at least 6 characters.";
+  }
+
   return nextErrors;
 }
 
@@ -53,7 +60,8 @@ function Login() {
   const [registerValues, setRegisterValues] = useState({
     firstName: "",
     lastName: "",
-    email: ""
+    email: "",
+    password: ""
   });
   const [errors, setErrors] = useState({});
   const [registerErrors, setRegisterErrors] = useState({});
@@ -138,19 +146,21 @@ function Login() {
       await register(
         registerValues.firstName.trim(),
         registerValues.lastName.trim(),
-        registerValues.email.trim()
+        registerValues.email.trim(),
+        registerValues.password
       );
       setValues({
         email: registerValues.email.trim(),
-        password: ""
+        password: registerValues.password
       });
       setRegisterValues({
         firstName: "",
         lastName: "",
-        email: ""
+        email: "",
+        password: ""
       });
       setMode("login");
-      setSuccessMessage(`Account created. Log in with ${demoPassword}.`);
+      setSuccessMessage("Account created successfully.");
     } catch (error) {
       setRegisterError(error.message);
     } finally {
@@ -253,6 +263,17 @@ function Login() {
               placeholder="dana@example.com"
             />
             {registerErrors.email && <p className="field-error">{registerErrors.email}</p>}
+
+            <label htmlFor="register-password">Password</label>
+            <input
+              id="register-password"
+              name="password"
+              type="password"
+              value={registerValues.password}
+              onChange={handleRegisterChange}
+              placeholder="At least 6 characters"
+            />
+            {registerErrors.password && <p className="field-error">{registerErrors.password}</p>}
 
             {registerError && <p className="alert error-alert">{registerError}</p>}
 

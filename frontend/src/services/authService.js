@@ -13,13 +13,14 @@ export async function login(email, password) {
   return authData;
 }
 
-export async function register(firstName, lastName, email) {
+export async function register(firstName, lastName, email, password) {
   return request("/api/auth/register", {
     method: "POST",
     body: {
       firstName,
       lastName,
-      email
+      email,
+      password
     }
   });
 }

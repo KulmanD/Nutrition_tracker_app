@@ -1133,11 +1133,24 @@ describe("Auth and settings DB-backed flows", () => {
     assertError(body, "VALIDATION_ERROR");
   });
 
+  it("400 — registration validates password length", async () => {
+    const { status, body } = await api("POST", "/api/auth/register", {
+      firstName: "Cloud",
+      lastName: "Student",
+      email: "short.password@example.com",
+      password: "123"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+  });
+
   it("201 — registration creates a DB-backed demo account", async () => {
     const { status, body } = await api("POST", "/api/auth/register", {
       firstName: "Cloud",
       lastName: "Student",
-      email: "cloud.student@example.com"
+      email: "cloud.student@example.com",
+      password: "test00"
     });
 
     assert.equal(status, 201);
@@ -1160,7 +1173,8 @@ describe("Auth and settings DB-backed flows", () => {
     const { status, body } = await api("POST", "/api/auth/register", {
       firstName: "Duplicate",
       lastName: "Student",
-      email: "cloud.student@example.com"
+      email: "cloud.student@example.com",
+      password: "test00"
     });
 
     assert.equal(status, 409);

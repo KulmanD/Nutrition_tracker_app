@@ -5,6 +5,7 @@ const AppError = require("../utils/AppError");
 const { sequelize } = require("../../models/orm");
 
 const DEMO_PASSWORD = "test00";
+const registeredPasswordsByEmail = new Map();
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -21,18 +22,24 @@ function cleanString(value) {
 }
 
 async function findLoginAccount(email, password) {
-  if (password !== DEMO_PASSWORD) {
+  const settings = await settingsRepository.getSettingsByEmail(email);
+
+  if (!settings) {
     return null;
   }
 
-  const settings = await settingsRepository.getSettingsByEmail(email);
-  return settings ? { userId: settings.userId } : null;
+  if (password === DEMO_PASSWORD || registeredPasswordsByEmail.get(email) === password) {
+    return { userId: settings.userId };
+  }
+
+  return null;
 }
 
 function validateRegistrationBody(body) {
   const firstName = cleanString(body.firstName);
   const lastName = cleanString(body.lastName);
   const email = cleanString(body.email);
+  const password = typeof body.password === "string" ? body.password : "";
 
   if (!firstName) {
     validationError("First name is required.", "firstName");
@@ -46,10 +53,15 @@ function validateRegistrationBody(body) {
     validationError("Valid email is required.", "email");
   }
 
+  if (!password || password.length < 6) {
+    validationError("Password must be at least 6 characters.", "password");
+  }
+
   return {
     firstName,
     lastName,
-    email
+    email,
+    password
   };
 }
 
@@ -135,6 +147,8 @@ async function register(req, res) {
       settings: createdSettings
     };
   });
+
+  registeredPasswordsByEmail.set(registration.email, registration.password);
 
   return successResponse(res, 201, {
     user: buildUserResponse(user, settings)
