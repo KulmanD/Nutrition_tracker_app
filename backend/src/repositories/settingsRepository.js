@@ -33,6 +33,19 @@ async function getSettingsByEmail(email) {
   return settings ? serializeSettings(settings) : null;
 }
 
+async function createSettings(nextSettings, options = {}) {
+  const settings = await UserSetting.create({
+    userId: nextSettings.userId,
+    username: nextSettings.username,
+    email: nextSettings.email,
+    theme: nextSettings.theme || "light"
+  }, {
+    transaction: options.transaction
+  });
+
+  return serializeSettings(settings);
+}
+
 async function updateSettings(userId, nextSettings) {
   const existing = await getSettings(userId);
 
@@ -56,5 +69,6 @@ async function updateSettings(userId, nextSettings) {
 module.exports = {
   getSettings,
   getSettingsByEmail,
+  createSettings,
   updateSettings
 };

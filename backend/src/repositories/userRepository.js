@@ -37,14 +37,16 @@ async function userExists(userId) {
   return count > 0;
 }
 
-async function createUser(data) {
+async function createUser(data, options = {}) {
   const user = await User.create({
     firstName: data.firstName,
     lastName: data.lastName,
     userRole: data.userRole
+  }, {
+    transaction: options.transaction
   });
 
-  await syncAdminProfile(user);
+  await syncAdminProfile(user, options.transaction);
   return serializeUser(user);
 }
 

@@ -1122,6 +1122,51 @@ describe("Auth and settings DB-backed flows", () => {
     assert.equal(body.data.user.email, "amit@example.com");
   });
 
+  it("400 — registration validates email", async () => {
+    const { status, body } = await api("POST", "/api/auth/register", {
+      firstName: "Cloud",
+      lastName: "Student",
+      email: "not-an-email"
+    });
+
+    assert.equal(status, 400);
+    assertError(body, "VALIDATION_ERROR");
+  });
+
+  it("201 — registration creates a DB-backed demo account", async () => {
+    const { status, body } = await api("POST", "/api/auth/register", {
+      firstName: "Cloud",
+      lastName: "Student",
+      email: "cloud.student@example.com"
+    });
+
+    assert.equal(status, 201);
+    assertSuccess(body);
+    assert.equal(body.data.user.fullName, "Cloud Student");
+    assert.equal(body.data.user.email, "cloud.student@example.com");
+    assert.equal(body.data.user.userRole, "user");
+
+    const login = await api("POST", "/api/auth/login", {
+      email: "cloud.student@example.com",
+      password: "test00"
+    });
+
+    assert.equal(login.status, 200);
+    assertSuccess(login.body);
+    assert.equal(login.body.data.user.email, "cloud.student@example.com");
+  });
+
+  it("409 — registration rejects duplicate emails", async () => {
+    const { status, body } = await api("POST", "/api/auth/register", {
+      firstName: "Duplicate",
+      lastName: "Student",
+      email: "cloud.student@example.com"
+    });
+
+    assert.equal(status, 409);
+    assertError(body, "EMAIL_ALREADY_EXISTS");
+  });
+
   it("200 — current user combines user and settings data", async () => {
     const { status, body } = await api("GET", "/api/users/me", undefined, {
       "x-user-id": "1"

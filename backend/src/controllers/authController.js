@@ -2,43 +2,55 @@ const userRepository = require("../repositories/userRepository");
 const settingsRepository = require("../repositories/settingsRepository");
 const { successResponse } = require("../utils/responseHelper");
 const AppError = require("../utils/AppError");
+const { sequelize } = require("../../models/orm");
 
-const demoAccounts = [
-  {
-    email: "denis@example.com",
-    password: "test00",
-    userId: 1
-  },
-  {
-    email: "yael@example.com",
-    password: "test00",
-    userId: 2
-  },
-  {
-    email: "amit@example.com",
-    password: "test00",
-    userId: 3
-  }
-];
+const DEMO_PASSWORD = "test00";
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-async function findDemoAccount(email, password) {
-  for (const account of demoAccounts) {
-    if (account.password !== password) {
-      continue;
-    }
+function validationError(message, field) {
+  throw new AppError(400, "VALIDATION_ERROR", message, {
+    field
+  });
+}
 
-    const settings = await settingsRepository.getSettings(account.userId);
+function cleanString(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
 
-    if (settings && settings.email === email) {
-      return account;
-    }
+async function findLoginAccount(email, password) {
+  if (password !== DEMO_PASSWORD) {
+    return null;
   }
 
-  return null;
+  const settings = await settingsRepository.getSettingsByEmail(email);
+  return settings ? { userId: settings.userId } : null;
+}
+
+function validateRegistrationBody(body) {
+  const firstName = cleanString(body.firstName);
+  const lastName = cleanString(body.lastName);
+  const email = cleanString(body.email);
+
+  if (!firstName) {
+    validationError("First name is required.", "firstName");
+  }
+
+  if (!lastName) {
+    validationError("Last name is required.", "lastName");
+  }
+
+  if (!email || !isValidEmail(email)) {
+    validationError("Valid email is required.", "email");
+  }
+
+  return {
+    firstName,
+    lastName,
+    email
+  };
 }
 
 function buildUserResponse(user, settings) {
@@ -53,7 +65,7 @@ function buildUserResponse(user, settings) {
 }
 
 async function login(req, res) {
-  const email = req.body.email;
+  const email = cleanString(req.body.email);
   const password = req.body.password;
 
   if (!email || !isValidEmail(email)) {
@@ -68,7 +80,7 @@ async function login(req, res) {
     });
   }
 
-  const account = await findDemoAccount(email, password);
+  const account = await findLoginAccount(email, password);
 
   if (!account) {
     throw new AppError(401, "LOGIN_FAILED", "Invalid email or password.", {});
@@ -90,6 +102,45 @@ async function login(req, res) {
   });
 }
 
+async function register(req, res) {
+  const registration = validateRegistrationBody(req.body);
+  const existingSettings = await settingsRepository.getSettingsByEmail(registration.email);
+
+  if (existingSettings) {
+    throw new AppError(409, "EMAIL_ALREADY_EXISTS", "A user with this email already exists.", {
+      field: "email"
+    });
+  }
+
+  const { user, settings } = await sequelize.transaction(async (transaction) => {
+    const createdUser = await userRepository.createUser({
+      firstName: registration.firstName,
+      lastName: registration.lastName,
+      userRole: "user"
+    }, {
+      transaction
+    });
+
+    const createdSettings = await settingsRepository.createSettings({
+      userId: createdUser.userId,
+      username: `${registration.firstName} ${registration.lastName}`,
+      email: registration.email,
+      theme: "light"
+    }, {
+      transaction
+    });
+
+    return {
+      user: createdUser,
+      settings: createdSettings
+    };
+  });
+
+  return successResponse(res, 201, {
+    user: buildUserResponse(user, settings)
+  });
+}
+
 function logout(req, res) {
   return successResponse(res, 200, {
     message: "Logged out successfully."
@@ -98,5 +149,6 @@ function logout(req, res) {
 
 module.exports = {
   login,
+  register,
   logout
 };
